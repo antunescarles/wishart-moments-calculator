@@ -381,7 +381,7 @@ def compute_L(i,k):
 
 # k = 5
 @interact
-def _(k = input_box(3),s=input_box(0),Ik_indx = input_box(Partitions(3).cardinality())):
+def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).cardinality()) , auto_update = True):
 #     print("k = ",k," type : ", type(k))
     n = Partitions(k).cardinality()
 
