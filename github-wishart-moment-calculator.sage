@@ -372,6 +372,7 @@ def compute_L(i,k):
 
     return L_i
 
+
 ## IMPORTANTE. Fijarse que cuando k=6 hay algo que falla al calcular los momentos.
 
 #### PARAMETERS
@@ -381,15 +382,17 @@ def compute_L(i,k):
 
 # k = 5
 @interact
-def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).cardinality()) , auto_update = True):
-#     print("k = ",k," type : ", type(k))
-    n = Partitions(k).cardinality()
+def _(k = input_box(3),s=input_box(0),Ik_indx = input_box(Partitions(3).cardinality())):
 
-    print("n = %d " % n,"\n")
+    outmost_verbose = False
+
+    n = Partitions(k).cardinality()
 
     s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
           # So s can range from 0 to n-1
           # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+
+    print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
 
     verbose = False # if verbose == True intermediate computations and checkings are displayed.
 
@@ -419,8 +422,9 @@ def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).card
         Bk = Bk.stack(row)
         t+=1
 
-    print("\nBk : \n")
-    print(Bk, "\n")
+    if outmost_verbose: 
+        print("\nBk : \n")
+        print(Bk, "\n")
 
     R2.<f,p> = QQ['f,p']
 
@@ -428,7 +432,7 @@ def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).card
 
     Dk = matrix(R2,n,n,0)
 
-    print("Elementos de la diagonal de Dk factorizados\n")
+    if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
     pm = [1]*n
     for i in range(0,n):
         lm = len(P[i])
@@ -436,20 +440,26 @@ def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).card
                 for s in range(1,P[i][j-1]+1):
                     pm[i] *= p +s-1- (j-1)*f
         Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
-        print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
 
-    print("\nDk:\n")
-    print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
+        if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
+
+    if outmost_verbose: 
+        print("\nDk:\n")
+        print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
 
     # Compute Mp 
     IBk = Bk.inverse()
-    print("\n")
-    print("IBk : \n")
-    print(IBk,"\n")
+
+    if outmost_verbose: 
+        print("\n")
+        print("IBk : \n")
+        print(IBk,"\n")
 
     Mp = IBk*Dk*Bk
-    print("Mp : \n")
-    print(Mp)
+    
+    if outmost_verbose: 
+        print("Mp : \n")
+        print(Mp)
 
     ## Computations of the moments
 
@@ -466,24 +476,28 @@ def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).card
     #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
 
     v_L = vector(SR,L)
-    print("\n")
-    print("v_L = " , v_L,"\n")
 
-    print("E = Mp*[r_(i)(w)]_(i): \n")
+    if outmost_verbose: 
+        print("\n")
+        print("v_L = " , v_L,"\n")
+
+        print("E = Mp*[r_(i)(w)]_(i): \n")
+
     E = Mp*v_L
-    for i in range(0,len(E)):
-        print(E[i])
+    if outmost_verbose: 
+        for i in range(0,len(E)):
+            print(E[i])
 
     # Computations on demand
     W = var('W')
     N = var('N',latex_name="n")
     S = var('S',latex_name="\\Sigma")
 
-    print('\nPara Jero: \n')
-
+    if outmost_verbose: print('\nPara Jero: \n')
+    
 #     Ik_indx = n-1
 #     Ik_indx = n # Here we use indices starting at 1
-    print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
+    if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
 
     D = {p:N/2,w:2*S}
 
@@ -491,7 +505,11 @@ def _(k = input_box(3) , s=input_box(0) , Ik_indx = input_box(Partitions(3).card
 #         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
         D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
 
-    print(E[Ik_indx-1].subs(D)/k,"\n")
+    if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
+
+    show(LatexExpr("W \\sim \\mathrm{Wishart}(\\frac{n}{2},2\\Sigma)"))
+
+    print("\n")
 
     show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(E[Ik_indx-1].subs(D)/k))
 #     show("[\\mathbb{E}(L_{r_{(i)}}(U))]_{I_k} = "+latex(E[n-1].subs(D)/k))
