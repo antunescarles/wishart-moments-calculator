@@ -507,8 +507,6 @@ def _(k = input_box(3),s=input_box(0),Ik_indx = input_box(Partitions(3).cardinal
 
     if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
 
-    show(LatexExpr("W \\sim \\mathrm{Wishart}(\\frac{n}{2},2\\Sigma)"))
-
     print("\n")
 
     show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(E[Ik_indx-1].subs(D)/k))
