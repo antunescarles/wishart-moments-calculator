@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300&family=Roboto:wght@300&display=swap');
+
+html {
+    font-family: 'Roboto Slab', serif;
+/*    font-family: Helvetica;*/
+}
+
+body {
+    display: grid;
+    grid-template-columns: 1fr 20fr 1fr;
+    background-color: hsl(60, 22%, 90%);
+}
+
+.wrapper ,ul{
+    background-color: white;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+body * {
+    grid-column: 2/3;
+    padding-bottom: .2rem
+    
+}   
+
+footer {
+    font-size: 12px;
+    margin: 1rem .5rem;
+}   
+
+.footer-text {
+    float: right;
+}
+
+code {
+    border-radius: 5px; 
+    -moz-border-radius: 5px; 
+    -webkit-border-radius: 5px; 
+    border: 1px solid #BCBEC0;
+    padding: 2px;
+    font:14px Monaco,Consolas,"Andale  Mono","DejaVu Sans Mono",monospace
+}
