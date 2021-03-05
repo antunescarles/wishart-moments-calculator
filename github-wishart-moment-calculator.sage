@@ -2,7 +2,7 @@ import numpy as np
 
 # I know we are advised against using this wildcards bc of the potential collisions of namespaces
 # Just let's do it for now until we take the time to add the prefixes to the functions of this modules.
-from portrait import *
+from portraits import *
 from jacks import *
 
 ## IMPORTANTE. Fijarse que cuando k=6 hay algo que falla al calcular los momentos.
