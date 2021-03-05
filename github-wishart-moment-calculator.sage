@@ -4,8 +4,8 @@ import numpy as np
 # Just let's do it for now until we take the time to add the prefixes to the functions of this modules.
 #from portraits import *
 #from jacks import *
-load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/modularization/jacks.sage')
-load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/modularization/portraits.sage')
+load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/main/jacks.sage')
+load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/main/portraits.sage')
 
 ## IMPORTANTE. Fijarse que cuando k=6 hay algo que falla al calcular los momentos.
 
