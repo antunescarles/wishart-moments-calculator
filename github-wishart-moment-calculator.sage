@@ -16,7 +16,7 @@ load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator
 
 # k = 5
 @interact
-def _(k = input_box(3),s=input_box(0),Ik_indx = input_box(Partitions(3).cardinality())):
+def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
 
     outmost_verbose = False
 
