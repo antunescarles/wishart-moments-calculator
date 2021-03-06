@@ -15,8 +15,8 @@ load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator
 # It is basically, to extract a submatrix of C and add the diagonal elements to it
 
 # k = 5
-@interact(layout = dict(top = [['k','s','Ik_indx']]) )
-def _(k = input_box(3),s=input_box(0),Ik_indx = input_box(Partitions(3).cardinality())):
+@interact(layout = dict(top = [['k','Ik_indx']]) )
+def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
 
     outmost_verbose = True
 
