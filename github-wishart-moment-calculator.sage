@@ -18,6 +18,9 @@ load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator
 def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
 
     outmost_verbose = False
+    
+    # Validation of the input
+    assert (k >= 1) , "Error: k < 0"
 
     n = Partitions(k).cardinality()
 
@@ -26,8 +29,7 @@ def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
           # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
             
     # Validation of the input
-    assert k >= 1 , "Error: k < 0"
-    assert 1 <= Ik_indx and Ik_indx <= n , "Error: i < 0 or i > n (#partitions)"
+    assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
 
     print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
 
