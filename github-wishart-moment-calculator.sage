@@ -14,7 +14,6 @@ load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator
 # Given a partition mu, construct the matrix for the Jack polynomial associated to mu (related to the parameter s)
 # It is basically, to extract a submatrix of C and add the diagonal elements to it
 
-# k = 5
 @interact
 def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
 
@@ -25,6 +24,10 @@ def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
     s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
           # So s can range from 0 to n-1
           # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+            
+    # Validation of the input
+    assert k >= 1 , "Error: k < 0"
+    assert 1 <= Ik_indx and Ik_indx <= n , "Error: i < 0 or i > n (#partitions)"
 
     print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
 
