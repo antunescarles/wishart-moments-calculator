@@ -15,138 +15,141 @@ load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator
 # It is basically, to extract a submatrix of C and add the diagonal elements to it
 
 @interact
-def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
+def wrpr(k = input_box(3,width = 8, label="$k$")):
 
     outmost_verbose = False
-    
-    # Validation of the input
+
     assert (k >= 1) , "Error: k < 0"
 
     n = Partitions(k).cardinality()
 
-    s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
-          # So s can range from 0 to n-1
-          # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
-            
-    # Validation of the input
-    assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
+    @interact
+    # def _(k = input_box(3,width = 8, label="$k$"),Ik_indx = input_box(Partitions(3).cardinality(),width = 8, label ="$i$")):
+    def _(Ik_indx = slider(1,n,step_size=1, label ="$i$")):
 
-    print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
+        s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
+        # So s can range from 0 to n-1
+        # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+        
+        # Validation of the input
+        assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
 
-    verbose = False # if verbose == True intermediate computations and checkings are displayed.
+        print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
+
+        verbose = False # if verbose == True intermediate computations and checkings are displayed.
 
 
 
-    # Compute the jack polynomial of order k associated to partition s in the monomial and power basis, EVALUATED IN t=2
-    # coef = []
-    # coef.append(computeJack(k,0,False)['p'])
-    # coef.append(computeJack(k,1,False)['p'])
-    # coef.append(computeJack(k,2,False)['p'])
-    # coef.append(computeJack(k,3,False)['p'])
-    # coef.append(computeJack(k,4,False)['p'])
-    # coef.append(computeJack(k,5,False)['p'])
-    # coef.append(computeJack(k,6,False)['p']) # implementar caso s = n-1
+        # Compute the jack polynomial of order k associated to partition s in the monomial and power basis, EVALUATED IN t=2
+        # coef = []
+        # coef.append(computeJack(k,0,False)['p'])
+        # coef.append(computeJack(k,1,False)['p'])
+        # coef.append(computeJack(k,2,False)['p'])
+        # coef.append(computeJack(k,3,False)['p'])
+        # coef.append(computeJack(k,4,False)['p'])
+        # coef.append(computeJack(k,5,False)['p'])
+        # coef.append(computeJack(k,6,False)['p']) # implementar caso s = n-1
 
-    coef = computeJack(k,s,verbose)
-    Bk = matrix(QQ,1,coef['p'])
+        coef = computeJack(k,s,verbose)
+        Bk = matrix(QQ,1,coef['p'])
 
-    t=0
-#     print("s = %d " % 0,coef['p'])
-    t+=1
-    # for t in range(1,n-1):
-    while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
-        coef = computeJack(k,t,verbose)
-        row =  matrix(QQ,1,coef['p'])
-#         print("s = %d " % t,coef['p'])
-        Bk = Bk.stack(row)
+        t=0
+    #     print("s = %d " % 0,coef['p'])
         t+=1
+        # for t in range(1,n-1):
+        while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
+            coef = computeJack(k,t,verbose)
+            row =  matrix(QQ,1,coef['p'])
+    #         print("s = %d " % t,coef['p'])
+            Bk = Bk.stack(row)
+            t+=1
 
-    if outmost_verbose: 
-        print("\nBk : \n")
-        print(Bk, "\n")
+        if outmost_verbose: 
+            print("\nBk : \n")
+            print(Bk, "\n")
 
-    R2.<f,p> = QQ['f,p']
+        R2.<f,p> = QQ['f,p']
 
-    P = Partitions(k).list()
+        P = Partitions(k).list()
 
-    Dk = matrix(R2,n,n,0)
+        Dk = matrix(R2,n,n,0)
 
-    if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
-    pm = [1]*n
-    for i in range(0,n):
-        lm = len(P[i])
-        for j in range(1,lm+1):
-                for s in range(1,P[i][j-1]+1):
-                    pm[i] *= p +s-1- (j-1)*f
-        Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
+        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
+        pm = [1]*n
+        for i in range(0,n):
+            lm = len(P[i])
+            for j in range(1,lm+1):
+                    for s in range(1,P[i][j-1]+1):
+                        pm[i] *= p +s-1- (j-1)*f
+            Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
 
-        if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
+            if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
 
-    if outmost_verbose: 
-        print("\nDk:\n")
-        print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
+        if outmost_verbose: 
+            print("\nDk:\n")
+            print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
 
-    # Compute Mp 
-    IBk = Bk.inverse()
+        # Compute Mp 
+        IBk = Bk.inverse()
 
-    if outmost_verbose: 
+        if outmost_verbose: 
+            print("\n")
+            print("IBk : \n")
+            print(IBk,"\n")
+
+        Mp = IBk*Dk*Bk
+
+        if outmost_verbose: 
+            print("Mp : \n")
+            print(Mp)
+
+        ## Computations of the moments
+
+        P.reverse()
+        # print(P,"\n")
+
+        r = []
+        L = []
+        for j in range(0,n):
+            r.append(toPortrait(P[j],k))
+            L.append(compute_L(r[j],k))
+
+        # for j in range(0,len(r)):
+        #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
+
+        v_L = vector(SR,L)
+
+        if outmost_verbose: 
+            print("\n")
+            print("v_L = " , v_L,"\n")
+
+            print("E = Mp*[r_(i)(w)]_(i): \n")
+
+        E = Mp*v_L
+        if outmost_verbose: 
+            for i in range(0,len(E)):
+                print(E[i])
+
+        # Computations on demand
+        W = var('W')
+        N = var('N',latex_name="n")
+        S = var('S',latex_name="\\Sigma")
+
+        if outmost_verbose: print('\nPara Jero: \n')
+
+    #     Ik_indx = n-1
+    #     Ik_indx = n # Here we use indices starting at 1
+        if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
+
+        D = {p:N/2,w:2*S}
+
+        for i in range(1,n+1):
+    #         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
+            D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
+
+        if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
+
         print("\n")
-        print("IBk : \n")
-        print(IBk,"\n")
 
-    Mp = IBk*Dk*Bk
-    
-    if outmost_verbose: 
-        print("Mp : \n")
-        print(Mp)
-
-    ## Computations of the moments
-
-    P.reverse()
-    # print(P,"\n")
-
-    r = []
-    L = []
-    for j in range(0,n):
-        r.append(toPortrait(P[j],k))
-        L.append(compute_L(r[j],k))
-
-    # for j in range(0,len(r)):
-    #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
-
-    v_L = vector(SR,L)
-
-    if outmost_verbose: 
-        print("\n")
-        print("v_L = " , v_L,"\n")
-
-        print("E = Mp*[r_(i)(w)]_(i): \n")
-
-    E = Mp*v_L
-    if outmost_verbose: 
-        for i in range(0,len(E)):
-            print(E[i])
-
-    # Computations on demand
-    W = var('W')
-    N = var('N',latex_name="n")
-    S = var('S',latex_name="\\Sigma")
-
-    if outmost_verbose: print('\nPara Jero: \n')
-    
-#     Ik_indx = n-1
-#     Ik_indx = n # Here we use indices starting at 1
-    if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
-
-    D = {p:N/2,w:2*S}
-
-    for i in range(1,n+1):
-#         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
-        D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
-
-    if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
-
-    print("\n")
-
-    show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(E[Ik_indx-1].subs(D)/k))
-#     show("[\\mathbb{E}(L_{r_{(i)}}(U))]_{I_k} = "+latex(E[n-1].subs(D)/k))
+        show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(E[Ik_indx-1].subs(D)/k))
+    #     show("[\\mathbb{E}(L_{r_{(i)}}(U))]_{I_k} = "+latex(E[n-1].subs(D)/k))
