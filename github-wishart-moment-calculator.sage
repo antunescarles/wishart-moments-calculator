@@ -195,11 +195,11 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
         E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k
         ll = E_inv_expr_lside.coefficients(Winv)
-        print("\n")
-        print(E_inv_expr_lside)
-        print("\n")
+#         print("\n")
+#         print(E_inv_expr_lside)
+#         print("\n")
         
-        print(ll)
+#         print(ll)
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
 
         show( "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr) )
