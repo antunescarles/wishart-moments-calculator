@@ -21,6 +21,13 @@ def traceDecorator(l,varname):
     
     return "("+a+")"
 
+def traceDecoratorInv(l,varname):
+    # l sera j+1, la potencia del argumento
+    # p sera i[j], la potencia de la traza
+    a = "\\mathrm{tr}\\,"+varname+"^{-%d}"%(l)
+    
+    return "("+a+")"
+
 def compute_r(i,k):
     # i is a portrait
 
