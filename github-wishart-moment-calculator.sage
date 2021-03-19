@@ -1,18 +1,7 @@
 import numpy as np
 
-# I know we are advised against using this wildcards bc of the potential collisions of namespaces
-# Just let's do it for now until we take the time to add the prefixes to the functions of this modules.
-#from portraits import *
-#from jacks import *
 load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/main/jacks.sage')
 load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/main/portraits.sage')
-
-## IMPORTANTE. Fijarse que cuando k=6 hay algo que falla al calcular los momentos.
-
-#### PARAMETERS
-
-# Given a partition mu, construct the matrix for the Jack polynomial associated to mu (related to the parameter s)
-# It is basically, to extract a submatrix of C and add the diagonal elements to it
 
 @interact
 def wrpr(k = input_box(3,width = 8, label="$k$")):
@@ -34,21 +23,9 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         # Validation of the input
         assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
 
-        print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
+        print("k = %d , r = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
 
         verbose = False # if verbose == True intermediate computations and checkings are displayed.
-
-
-
-        # Compute the jack polynomial of order k associated to partition s in the monomial and power basis, EVALUATED IN t=2
-        # coef = []
-        # coef.append(computeJack(k,0,False)['p'])
-        # coef.append(computeJack(k,1,False)['p'])
-        # coef.append(computeJack(k,2,False)['p'])
-        # coef.append(computeJack(k,3,False)['p'])
-        # coef.append(computeJack(k,4,False)['p'])
-        # coef.append(computeJack(k,5,False)['p'])
-        # coef.append(computeJack(k,6,False)['p']) # implementar caso s = n-1
 
         coef = computeJack(k,s,verbose)
         Bk = matrix(QQ,1,coef['p'])
@@ -103,6 +80,32 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
             print("Mp : \n")
             print(Mp)
 
+        ## Calculamos la otra diagonal para el momento de la inversa
+        Dk_star = matrix(R2,n,n,0)
+
+        # To do: Chequear condición....
+
+        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
+        R3.<q> =  QQ['q'];
+
+        qm = [1]*n
+        for i in range(0,n):
+            lm = len(P[i])
+            for j in range(k-lm+1,k+1):
+                    for s in range(1,P[i][k-j+1 -1]+1):
+                        qm[i] *= p + (k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
+                                                  # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
+            Dk_star[i,i] = qm[i].subs({f:1/2 , p : (p - n*f)}) # Evaluated in f = 1/2 and q= p-nf (o como aparece en el paper q = p-rf)
+
+#             print(P[i]," -->  ", qm[i].subs({f:1/2}).factor())
+
+        # if outmost_verbose: 
+#         print("\nDk_star:\n")
+#         print(Dk_star)
+
+        # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
+        M_pnf_star = IBk*Dk_star*Bk
+
         ## Computations of the moments
 
         P.reverse()
@@ -134,22 +137,55 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         W = var('W')
         N = var('N',latex_name="n")
         S = var('S',latex_name="\\Sigma")
-
-        if outmost_verbose: print('\nPara Jero: \n')
+        Sinv = var('Sinv', latex_name = "\\Sigma")
+        Winv = var('Winv',latex_name = "W^{-1}")
 
     #     Ik_indx = n-1
     #     Ik_indx = n # Here we use indices starting at 1
         if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
 
         D = {p:N/2,w:2*S}
+        Dinv = {p:N/2 , w : 2*Sinv^(-1) }
 
         for i in range(1,n+1):
     #         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
             D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
 
+            Dinv[var('b%d'%i)] = (2^(-i))*var('a%d'%i,latex_name = traceDecoratorInv(i,"{\\Sigma}"))
+
+
         if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
+
+#         print("\n")
+#         print(E[Ik_indx-1].subs(D)/k,"\n")
+        E_inv_expr = E[Ik_indx-1].subs(Dinv)/k
+#         print(E_inv_expr,"\n")
+
+        ## Artifact to print E[\Sigma ^{-1}] nicely
+        # 1) Extract the coefficients of every negatice power of Sinv
+        # 2) Form a new expression multiplying the coef of the (-j)-th powe of Sinv for a new variable, something like Sj with latex_name \Sigma^{-j}
+        
+        l = E_inv_expr.coefficients(Sinv)
+#         print("list of coeff of Sinv with its exponents: \n")
+#         print(l)
+        new_E_inv_expr = sum( [ c[0]*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] )
+#         print("New expression: \n")
+#         print(new_E_inv_expr)
+#         show(latex(new_E_inv_expr))
 
         print("\n")
 
-        show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(E[Ik_indx-1].subs(D)/k))
-    #     show("[\\mathbb{E}(L_{r_{(i)}}(U))]_{I_k} = "+latex(E[n-1].subs(D)/k))
+        lsideD = {w : W}
+        lsideDinv = {w:Winv}
+
+        for i in range(1,n+1):
+
+            lsideD[var('b%d'%i)] = var('b%d'%i,latex_name = traceDecorator(i,"{W}"))
+
+            lsideDinv[var('b%d'%i)] = var('a%d'%i,latex_name = traceDecoratorInv(i,"{W}"))
+
+        show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideD)/k)+") \\; = \\; " +latex(E[Ik_indx-1].subs(D)/k))
+        print("\n")
+        # Show expectation of the inverses
+        show("\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1))
+        show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideDinv)/k)+") \\; = \\; "+latex(new_E_inv_expr))
