@@ -138,7 +138,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         N = var('N',latex_name="n")
         S = var('S',latex_name="\\Sigma")
         Sinv = var('Sinv', latex_name = "\\Sigma")
-        Winv = var('Winv',latex_name = "W^{-1}")
+        Winv = var('Winv',latex_name = "W")
 
     #     Ik_indx = n-1
     #     Ik_indx = n # Here we use indices starting at 1
@@ -158,6 +158,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
 #         print("\n")
 #         print(E[Ik_indx-1].subs(D)/k,"\n")
+        
         E_inv_expr = E[Ik_indx-1].subs(Dinv)/k
 #         print(E_inv_expr,"\n")
 
@@ -173,10 +174,12 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 #         print(new_E_inv_expr)
 #         show(latex(new_E_inv_expr))
 
+        
+
         print("\n")
 
         lsideD = {w : W}
-        lsideDinv = {w:Winv}
+        lsideDinv = {w:Winv^(-1)}
 
         for i in range(1,n+1):
 
@@ -188,4 +191,15 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         print("\n")
         # Show expectation of the inverses
         show("\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1))
-        show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideDinv)/k)+") \\; = \\; "+latex(new_E_inv_expr))
+        
+        # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
+        E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k
+        ll = E_inv_expr_lside.coefficients(Winv)
+        print("\n")
+        print(E_inv_expr_lside)
+        print("\n")
+        
+        print(ll)
+        new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
+
+        show( "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr) )
