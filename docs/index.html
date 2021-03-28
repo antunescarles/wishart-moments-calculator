@@ -2,20 +2,55 @@
 <html>
     <head>
         <meta name="google-site-verification" content="a2rlofR5Q-jJ6fAirMK4MNaEkpPj2Xks6GeiyapvuT0" />
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     </head>
     <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
+    
+    
+    <script>
+        $(function(){
+            $("#tofill").load("https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/test.txt");});
+    </script>
+    
+<!--    Este bloque se usaba cuando las sagecells pordian acceder a github por el load-->
+<!--
     <script>
         sagecell.makeSagecell({"inputLocation": ".sage", 
-                               "autoeval": true,
-                               "hide": ["editor","evalButton","permalink"]
-                              });
+                                   "autoeval": true,
+    //                               "hide": ["editor","evalButton","permalink"]
+                                   "hide": ["evalButton","permalink"]
+                                  });
     </script>
+-->
+    
+    <script>
+        $(function(){
+            url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-main.py"
+//            url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/test.sage"
+            $("#tofill").load(url,function(){
+                tofill = document.getElementById("tofill");
+                tofill.setAttribute("type","text/x-sage");
+            
+                sagecell.makeSagecell({"inputLocation": ".sage", 
+                                   "autoeval": true,
+                                   "hide": ["editor","evalButton","permalink"]
+//                                   "hide": ["evalButton","permalink"]
+                                  });
+            });
+        });
+        
+        
+    </script>
+    
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     
 <!--    When we include the scripts below the latex produced by the sagecell is not rendered (or at least not often rendered)-->
     
 <!--    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>-->
 <!--    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>-->
+    
+    
     <link rel="stylesheet" href="style.css">
     <body>
         <div class="wrapper">
@@ -53,11 +88,13 @@
                     Computations can also be made for a <a href="./numeric.html">specific matrix</a>.
                 </li>
             </ul>
+            
             <div class="sage">
-              <script type="text/x-sage">
-                    load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/main/github-wishart-moment-calculator.sage')
+                <script id = "tofill" type="text/x-sage">    
                 </script>
             </div>
+            
+            <div id = "scell-main"></div>
         </div>
         <footer>
             <div class="footer-text">

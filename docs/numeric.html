@@ -2,7 +2,10 @@
 <html>
     <head>
     </head>
+    
     <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
+    
+<!--
     <script>
         sagecell.makeSagecell({"inputLocation": ".sage", 
                                "autoeval": false,
@@ -15,6 +18,30 @@
                                "hide": ["editor","evalButton","permalink"]
                               });
     </script>
+-->
+    
+<!--
+    <script>
+        $(function(){
+            url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/test.sage"
+            
+            $("#tofill").load(url,function(){
+                
+                $("#tofill").prepend("print('Prepended text.')\n");
+                
+                tofill = document.getElementById("tofill");
+                tofill.setAttribute("type","text/x-sage");
+            
+                sagecell.makeSagecell({"inputLocation": ".sage", 
+                                   "autoeval": false,
+//                                   "hide": ["editor","evalButton","permalink"]
+                                   "hide": ["permalink"]
+                                  });
+            });
+        });
+    </script>
+-->
+    
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     
 <!--    When we include the scripts below the latex produced by the sagecell is not rendered (or at least not often rendered)-->
@@ -22,10 +49,50 @@
 <!--    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>-->
 <!--    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>-->
     
-    
-    
     <link    rel="stylesheet" href="style.css">
     
+    <script>
+        $(function(){
+            $("#matrix-form").submit(
+                function(event){
+                    event.preventDefault()
+                    matdef = document.getElementById('command').value;
+                    alert(matdef);
+                    
+                    url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-main.py"
+
+                    const xhr = new XMLHttpRequest();
+                    
+                    xhr.onreadystatechange = function(){
+                        if (xhr.readyState == 4){
+                            if (xhr.status == 200)
+                                $("#test-par").append(xhr.responseText);
+                                tofill = document.getElementById("tofill");
+                                tofill.textContent = xhr.responseText;
+                            
+                                $("#tofill").prepend("A = identity(3)\n")
+                            if (xhr.status == 404)
+                                $("#test-par").append("Not found.");
+                        }
+                    };
+                    
+                    xhr.open('get',url,false);
+                    xhr.send();
+                    
+                    tofill = document.getElementById("tofill");
+                    tofill.setAttribute("type","text/x-sage");
+                    
+                    sagecell.makeSagecell({"inputLocation": ".sage", 
+                                           "autoeval": false,
+        //                                   "hide": ["editor","evalButton","permalink"]
+                                           "hide": ["permalink"]
+                                          });
+//                    Queda poner armar el monolithic-numeric.py
+                }
+            );
+        });
+            
+    </script>
     
     <body>
         <div class="wrapper" id = "wrapper-numeric">
@@ -43,18 +110,21 @@
                     Computations can also be made for a <a href="./index.html">symbolic matrix</a>.
                 </li>
             </ul>
-<!--
-            <form method="post">
+            
+            <form method="post" id="matrix-form">
                 <textarea id = "command" name = "matrix_def">A = identity_matrix(3)</textarea>
                 <button type="submit">Compute</button>
             </form>
--->
-            <div class="dim">
-              <script type="text/x-sage">
-                    load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/main/numeric-dim-calc.sage');
+            
+            <div class="sage">
+                <script id="tofill">
                 </script>
             </div>
             
+            <p id = "test-par">
+            </p>
+            
+<!--
             <div class="sage hid" id="numeric-cell">
               <script type="text/x-sage" id="numeric-script">
               A = identity_matrix(3)
@@ -73,6 +143,7 @@
                 Joint work with <a href="https://sites.google.com/site/lilianaforzani/english">Liliana Forzani</a> (UNL-CONICET) and Ricardo Toledano (UNL-CONICET)
             </div>
         </footer>
+-->
     </body>
 <!--
     <script>
