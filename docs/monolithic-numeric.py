@@ -424,135 +424,171 @@ def computeNum_L(i,k,S):
 
 ######################################### MAIN ######################################### 
 
-@interact(layout = dict(top = [['k','Ik_indx']]) )
-def _(k = input_box(3),Ik_indx = input_box(Partitions(3).cardinality())):
+r = A.nrows()
+assert (r == A.ncols()), "The matrix given is not squared."
+assert (A.is_symmetric()), "The matrix given is not symmetric."
 
-    outmost_verbose = True
+outmost_verbose = False
 
-    n = Partitions(k).cardinality()
+## Check that the dim of the matrix is in fact a number of partitions.
+i=1
+r_correct = False #flag that indicates when r is indeed the number of partitions of some k.
+passed = False # flag that is set true when we get to some i with Partitions(i).cardinality()> k
 
-    s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
-          # So s can range from 0 to n-1
-          # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+while (not r_correct and not passed and i<=10) :
+    card = Partitions(i).cardinality()
+    print("r = %d and card = %d"% (r,card))
+    if r == card:
+        r_correct = True
+    else:
+        if card > r:
+            passed = True
+    i+=1
 
-    print("k = %d , n = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
+assert (r_correct), "The size of the matrix given is not the cardinality of the number of partitions of any k (at least for k<=10)"
 
-    verbose = False # if verbose == True intermediate computations and checkings are displayed.
+# TO CHANGE. Use r or n uniformly troughout the script.
+n = r
 
-    coef = computeJack(k,s,verbose)
-    Bk = matrix(QQ,1,coef['p'])
+s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
+      # So s can range from 0 to n-1
+      # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
 
-    t=0
+print("k = %d , r = %d " % (k,n),"\n")
+
+
+
+verbose = False # if verbose == True intermediate computations and checkings are displayed.
+
+
+
+# Compute the jack polynomial of order k associated to partition s in the monomial and power basis, EVALUATED IN t=2
+# coef = []
+# coef.append(computeJack(k,0,False)['p'])
+# coef.append(computeJack(k,1,False)['p'])
+# coef.append(computeJack(k,2,False)['p'])
+# coef.append(computeJack(k,3,False)['p'])
+# coef.append(computeJack(k,4,False)['p'])
+# coef.append(computeJack(k,5,False)['p'])
+# coef.append(computeJack(k,6,False)['p']) # implementar caso s = n-1
+
+coef = computeJack(k,s,verbose)
+Bk = matrix(QQ,1,coef['p'])
+
+t=0
 #     print("s = %d " % 0,coef['p'])
-    t+=1
-    # for t in range(1,n-1):
-    while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
-        coef = computeJack(k,t,verbose)
-        row =  matrix(QQ,1,coef['p'])
+t+=1
+# for t in range(1,n-1):
+while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
+    coef = computeJack(k,t,verbose)
+    row =  matrix(QQ,1,coef['p'])
 #         print("s = %d " % t,coef['p'])
-        Bk = Bk.stack(row)
-        t+=1
+    Bk = Bk.stack(row)
+    t+=1
 
-    if outmost_verbose: 
-        print("\nBk : \n")
-        print(Bk, "\n")
+if outmost_verbose: 
+    print("\nBk : \n")
+    print(Bk, "\n")
 
-    R2.<f,p> = QQ['f,p']
+R2.<f,p> = QQ['f,p']
 
-    P = Partitions(k).list()
+P = Partitions(k).list()
 
-    Dk = matrix(R2,n,n,0)
+Dk = matrix(R2,n,n,0)
 
-    if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
-    pm = [1]*n
-    for i in range(0,n):
-        lm = len(P[i])
-        for j in range(1,lm+1):
-                for s in range(1,P[i][j-1]+1):
-                    pm[i] *= p +s-1- (j-1)*f
-        Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
 
-        if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
 
-    if outmost_verbose: 
-        print("\nDk:\n")
-        print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
+if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
+pm = [1]*n
+for i in range(0,n):
+    lm = len(P[i])
+    for j in range(1,lm+1):
+            for s in range(1,P[i][j-1]+1):
+                pm[i] *= p +s-1- (j-1)*f
+    Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
 
-    # Compute Mp 
-    IBk = Bk.inverse()
+    if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
 
-    if outmost_verbose: 
-        print("\n")
-        print("IBk : \n")
-        print(IBk,"\n")
+if outmost_verbose: 
+    print("\nDk:\n")
+    print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
 
-    Mp = IBk*Dk*Bk
-    
-    if outmost_verbose: 
-        print("Mp : \n")
-        print(Mp)
+# Compute Mp 
+IBk = Bk.inverse()
 
-    ## Computations of the moments
+if outmost_verbose: 
+    print("\n")
+    print("IBk : \n")
+    print(IBk,"\n")
 
-    P.reverse()
-    # print(P,"\n")
+Mp = IBk*Dk*Bk
 
-    r = []
-    L = []
-    Lnum = []
-    
+if outmost_verbose: 
+    print("Mp : \n")
+    print(Mp)
+
+
+## Computations of the moments
+
+P.reverse()
+# print(P,"\n")
+
+r = []
+L = []
+Lnum = []
+
 #     A = random_matrix(QQ,n,n)
 #     A = identity_matrix(k)
-    
-    for j in range(0,n):
-        r.append(toPortrait(P[j],k))
-        L.append(compute_L(r[j],k))
-        Lnum.append(computeNum_L(r[j],k,2*A))
 
-    # for j in range(0,len(r)):
-    #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
-    print("\nLnum: \n",Lnum)
-    
-    print("\nL: \n",L)
+for j in range(0,n):
+    r.append(toPortrait(P[j],k))
+    L.append(compute_L(r[j],k))
+    Lnum.append(computeNum_L(r[j],k,2*A))
 
-    v_L = vector(SR,L)
-    print(Lnum[0].parent())
-    
-    
+# for j in range(0,len(r)):
+#     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
+print("\nLnum: \n",Lnum)
+
+print("\nL: \n",L)
+
+v_L = vector(SR,L)
+print(Lnum[0].parent())
+
+
 #     print("\nv_Lnum: \n",v_Lnum)
 
-    if outmost_verbose: 
-        print("\n")
-        print("v_L = " , v_L,"\n")
+if outmost_verbose: 
+    print("\n")
+    print("v_L = " , v_L,"\n")
 
-        print("E = Mp*[r_(i)(w)]_(i): \n")
+    print("E = Mp*[r_(i)(w)]_(i): \n")
 
-    E = Mp*v_L
+E = Mp*v_L
 #     Enum = Mp*v_Lnum
-    Enum = [NaN]*n
-    #Para Enum hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
-    for i in range(0,n):
-        print(Mp[0,0]*Lnum[0])
-        Enum[i] = sum([Mp[i,j]*Lnum[i] for j in range(0,n)])
-        print("\n",Enum[i],"\n")
+Enum = [NaN]*n
+#Para Enum hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
+for i in range(0,n):
+    print(Mp[0,0]*Lnum[0])
+    Enum[i] = sum([Mp[i,j]*Lnum[i] for j in range(0,n)])
+    print("\n",Enum[i],"\n")
 
-    if outmost_verbose: 
-        for i in range(0,len(E)):
-            print(E[i])
+if outmost_verbose: 
+    for i in range(0,len(E)):
+        print(E[i])
 
-    # Computations on demand
-    W = var('W')
-    N = var('N',latex_name="n")
-    S = var('S',latex_name="\\Sigma")
+# Computations on demand
+W = var('W')
+N = var('N',latex_name="n")
+S = var('S',latex_name="\\Sigma")
 
-    if outmost_verbose: print('\nPara Jero: \n')
-    
+if outmost_verbose: print('\nPara Jero: \n')
+
 #     Ik_indx = n-1
 #     Ik_indx = n # Here we use indices starting at 1
-    if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
+if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
 
-    D = {p:N/2,w:2*S}
+D = {p:N/2,w:2*S}
 
-    if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
-    show("2\\Sigma = "+ latex(2*A))
-    show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(Enum[Ik_indx-1].subs({p:N/2})/k))
+if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
+show("2\\Sigma = "+ latex(2*A))
+show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(Enum[Ik_indx-1].subs({p:N/2})/k))
