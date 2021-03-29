@@ -435,11 +435,14 @@ i=1
 r_correct = False #flag that indicates when r is indeed the number of partitions of some k.
 passed = False # flag that is set true when we get to some i with Partitions(i).cardinality()> k
 
+k=NaN
+
 while (not r_correct and not passed and i<=10) :
     card = Partitions(i).cardinality()
     print("r = %d and card = %d"% (r,card))
     if r == card:
         r_correct = True
+        k = i
     else:
         if card > r:
             passed = True
