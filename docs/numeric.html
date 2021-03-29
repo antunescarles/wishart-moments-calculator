@@ -59,18 +59,20 @@
                     matdef = document.getElementById('command').value;
                     alert(matdef);
                     
-                    url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-main.py"
+                    url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-numeric.py"
 
                     const xhr = new XMLHttpRequest();
                     
                     xhr.onreadystatechange = function(){
                         if (xhr.readyState == 4){
                             if (xhr.status == 200)
-                                $("#test-par").append(xhr.responseText);
+//                                $("#test-par").append(xhr.responseText);
                                 tofill = document.getElementById("tofill");
                                 tofill.textContent = xhr.responseText;
                             
-                                $("#tofill").prepend("A = identity(3)\n")
+                                matdef = document.getElementById('command').value
+                            
+                                $("#tofill").prepend(matdef + "\n")
                             if (xhr.status == 404)
                                 $("#test-par").append("Not found.");
                         }
@@ -84,8 +86,8 @@
                     
                     sagecell.makeSagecell({"inputLocation": ".sage", 
                                            "autoeval": false,
-        //                                   "hide": ["editor","evalButton","permalink"]
-                                           "hide": ["permalink"]
+                                           "hide": ["editor","permalink"]
+//                                           "hide": ["permalink"]
                                           });
 //                    Queda poner armar el monolithic-numeric.py
                 }
