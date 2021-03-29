@@ -436,10 +436,11 @@ r_correct = False #flag that indicates when r is indeed the number of partitions
 passed = False # flag that is set true when we get to some i with Partitions(i).cardinality()> k
 
 k=NaN
+Ik_indx = 0
 
 while (not r_correct and not passed and i<=10) :
     card = Partitions(i).cardinality()
-    print("r = %d and card = %d"% (r,card))
+#     print("r = %d and card = %d"% (r,card))
     if r == card:
         r_correct = True
         k = i
@@ -550,12 +551,12 @@ for j in range(0,n):
 
 # for j in range(0,len(r)):
 #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
-print("\nLnum: \n",Lnum)
+# print("\nLnum: \n",Lnum)
 
-print("\nL: \n",L)
+# print("\nL: \n",L)
 
 v_L = vector(SR,L)
-print(Lnum[0].parent())
+# print(Lnum[0].parent())
 
 
 #     print("\nv_Lnum: \n",v_Lnum)
@@ -571,9 +572,9 @@ E = Mp*v_L
 Enum = [NaN]*n
 #Para Enum hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
 for i in range(0,n):
-    print(Mp[0,0]*Lnum[0])
+#     print(Mp[0,0]*Lnum[0])
     Enum[i] = sum([Mp[i,j]*Lnum[i] for j in range(0,n)])
-    print("\n",Enum[i],"\n")
+#     print("\n",Enum[i],"\n")
 
 if outmost_verbose: 
     for i in range(0,len(E)):
