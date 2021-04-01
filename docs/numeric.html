@@ -5,6 +5,13 @@
     
     <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
     
+    <script src="codemirror/lib/codemirror.js"></script>
+    <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+    <script src="codemirror/mode/javascript/javascript.js"></script>
+    <link rel = "stylesheet" href="codemirror/theme/darcula.css">
+    <script src="codemirror/mode/python/python.js"></script>
+    
+
 <!--
     <script>
         sagecell.makeSagecell({"inputLocation": ".sage", 
@@ -57,7 +64,7 @@
                 function(event){
                     event.preventDefault()
                     matdef = document.getElementById('command').value;
-                    alert(matdef);
+//                    alert(matdef);
                     
                     url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-num.py"
 
@@ -85,9 +92,9 @@
                     tofill.setAttribute("type","text/x-sage");
                     
                     sagecell.makeSagecell({"inputLocation": ".sage", 
-                                           "autoeval": false,
+                                           "autoeval": true,
 //                                           "hide": ["editor","permalink"]
-                                           "hide": ["editor","permalink"]
+                                           "hide": ["editor","permalink","evalButton"]
 //                                           "hide": ["permalink"]
                                           });
 //                    Queda poner armar el monolithic-numeric.py
@@ -115,7 +122,7 @@
             </ul>
             
             <form method="post" id="matrix-form">
-                <textarea id = "command" name = "matrix_def">A = identity_matrix(3)</textarea>
+                <textarea id = "command" rows = "3" name = "matrix_def"></textarea>
                 <button type="submit">Compute</button>
             </form>
             
@@ -147,6 +154,7 @@
             </div>
         </footer>
 -->
+<!--            <textarea id = "editor"></textarea>-->
     </body>
 <!--
     <script>
@@ -182,4 +190,14 @@
         }); 
     </script>
 -->
+        <script src="codemirror/addon/edit/closebrackets.js"></script>
+        <script src="codemirror/addon/edit/matchbrackets.js"></script>
+        <script>
+//            var myCodeMirror = CodeMirror(document.body);
+            var editor =  new CodeMirror.fromTextArea(document.getElementById("command"),{lineNumbers: true, theme: 'darcula',mode : "python", viewportMargin : 5, matchBrackets : true, autoCloseBrackets : true});
+            editor.setValue("A = identity_matrix(3)");
+            editor.setSize(null,100)
+            
+            
+        </script>
 </html>
