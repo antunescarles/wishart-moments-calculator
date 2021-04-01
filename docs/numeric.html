@@ -59,7 +59,7 @@
                     matdef = document.getElementById('command').value;
                     alert(matdef);
                     
-                    url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-numeric.py"
+                    url = "https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator/jquery-test/docs/monolithic-num.py"
 
                     const xhr = new XMLHttpRequest();
                     
@@ -86,6 +86,7 @@
                     
                     sagecell.makeSagecell({"inputLocation": ".sage", 
                                            "autoeval": false,
+//                                           "hide": ["editor","permalink"]
                                            "hide": ["editor","permalink"]
 //                                           "hide": ["permalink"]
                                           });
