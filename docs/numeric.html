@@ -5,11 +5,11 @@
     
     <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
     
-    <script src="codemirror/lib/codemirror.js"></script>
-    <link rel="stylesheet" href="codemirror/lib/codemirror.css">
-    <script src="codemirror/mode/javascript/javascript.js"></script>
-    <link rel = "stylesheet" href="codemirror/theme/darcula.css">
-    <script src="codemirror/mode/python/python.js"></script>
+    <script src="codemirror.js"></script>
+    <link rel="stylesheet" href="codemirror.css">
+    <script src="javascript.js"></script>
+    <link rel = "stylesheet" href="darcula.css">
+    <script src="python.js"></script>
     
 
 <!--
@@ -190,8 +190,8 @@
         }); 
     </script>
 -->
-        <script src="codemirror/addon/edit/closebrackets.js"></script>
-        <script src="codemirror/addon/edit/matchbrackets.js"></script>
+        <script src="closebrackets.js"></script>
+        <script src="matchbrackets.js"></script>
         <script>
 //            var myCodeMirror = CodeMirror(document.body);
             var editor =  new CodeMirror.fromTextArea(document.getElementById("command"),{lineNumbers: true, theme: 'darcula',mode : "python", viewportMargin : 5, matchBrackets : true, autoCloseBrackets : true});
