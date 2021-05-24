@@ -613,18 +613,26 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         end_multline = "\\end{multline}"
 
         # Show expectation
-        show( begin_multline_shoveleft + "\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideD)/k)+") \\; = \\; " +latex(E[Ik_indx-1].subs(D)/k) + end_multline)
-        print("\n")
+        eq1 = "\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideD)/k)+") \\; = \\; " +latex(E[Ik_indx-1].subs(D)/k)
+        
+#         show( begin_multline_shoveleft + eq1 + end_multline)
+#         print("\n")
         
         # Show expectation of the inverses
-        show(begin_multline_shoveleft + "\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1) + end_multline)
+        condition_text = "\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1) 
         
+#         show(begin_multline_shoveleft + condition_text + end_multline)
+
         # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
         E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k
         ll = E_inv_expr_lside.coefficients(Winv)
-        
-        new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
-        
-        print("\n")
 
-        show( begin_multline_shoveleft + "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr)+ end_multline )
+        new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
+
+#         print("\n")
+
+        eq2 = "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr)
+
+#         show( begin_multline_shoveleft + eq2 + end_multline )
+
+        show("\\begin{multline}" + eq1 + "\\newline \\phantom{a} \\newline \\shoveleft" + condition_text + "\\newline \\phantom{a} \\newline\\shoveleft " + eq2 + "\\end{multline}")
