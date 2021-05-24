@@ -444,7 +444,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         # Validation of the input
         assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
 
-        print("k = %d , r = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
+#         print("k = %d , r = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
 
         verbose = False # if verbose == True intermediate computations and checkings are displayed.
 
@@ -608,19 +608,23 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
             lsideDinv[var('b%d'%i)] = var('a%d'%i,latex_name = traceDecoratorInv(i,"{W}"))
 
-        show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideD)/k)+") \\; = \\; " +latex(E[Ik_indx-1].subs(D)/k))
+        ## Formatting of the output
+        begin_multline_shoveleft = "\\begin{multline} \\shoveleft" # This is to make the text align to the left.
+        end_multline = "\\end{multline}"
+
+        # Show expectation
+        show( begin_multline_shoveleft + "\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideD)/k)+") \\; = \\; " +latex(E[Ik_indx-1].subs(D)/k) + end_multline)
         print("\n")
+        
         # Show expectation of the inverses
-        show("\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1))
+        show(begin_multline_shoveleft + "\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1) + end_multline)
         
         # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
         E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k
         ll = E_inv_expr_lside.coefficients(Winv)
-#         print("\n")
-#         print(E_inv_expr_lside)
-#         print("\n")
         
-#         print(ll)
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
+        
+        print("\n")
 
-        show( "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr) )
+        show( begin_multline_shoveleft + "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr)+ end_multline )
