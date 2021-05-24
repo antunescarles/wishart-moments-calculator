@@ -433,9 +433,12 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
     n = Partitions(k).cardinality()
 
+    i_list = [1 .. n]
+    i_list.reverse()
+
     @interact
     # def _(k = input_box(3,width = 8, label="$k$"),Ik_indx = input_box(Partitions(3).cardinality(),width = 8, label ="$i$")):
-    def _(Ik_indx = slider(1,n,step_size=1, label ="$(i)$")):
+    def _(Ik_indx = slider(vmin = i_list, label ="$(i)$")):
 
         s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
         # So s can range from 0 to n-1
