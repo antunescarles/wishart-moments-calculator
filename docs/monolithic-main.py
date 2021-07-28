@@ -643,8 +643,8 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
         # This fixes the error of display yielded by show()
         pretty_print(html( r'$\mathbb{E}(%s) \; = \; %s $' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(E[Ik_indx-1].subs(D)/k)) ))
-        print('\n')
+        pretty_print(html(r'$\phantom{a}$'))
         pretty_print(html( r'$ \text{And if } \, n \geq 2k + (r-1) = %s \\$' % latex(2*k + n - 1) ))
-        print('\n')
+        pretty_print(html(r'$\phantom{a}$'))
         pretty_print(html(r'$\mathbb{E}(%s) ) \; = \; %s $'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
         
