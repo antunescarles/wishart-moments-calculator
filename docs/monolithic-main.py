@@ -634,7 +634,8 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
 #         print("\n")
 
-        eq2 = "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr)
+#         eq2 = "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr)
+        eq2 = latex(new_E_inv_expr_lside)
 
 #         show( begin_multline_shoveleft + eq2 + end_multline )
 
