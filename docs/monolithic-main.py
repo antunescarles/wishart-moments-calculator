@@ -616,7 +616,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         end_multline = "\\end{multline}"
 
         # Show expectation
-        eq1 = "\\mathbb{E}("+latex(v_L[Ik_indx-1].subs(lsideD)/k)+") \\; = \\; " +latex(E[Ik_indx-1].subs(D)/k)
+        eq1 = LatexExpr("\\mathbb{E}(")+latex(v_L[Ik_indx-1].subs(lsideD)/k)+LatexExpr(") \\; = \\; ") +latex(E[Ik_indx-1].subs(D)/k)
         
 #         show( begin_multline_shoveleft + eq1 + end_multline)
 #         print("\n")
