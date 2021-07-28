@@ -638,4 +638,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
 #         show( begin_multline_shoveleft + eq2 + end_multline )
 
-        show("\\begin{multline}" + eq1 + "\\newline \\phantom{a} \\newline \phantom{a} \\newline \\phantom{a} \\newline\\shoveleft " + eq2 + "\\end{multline}")
+#         show("\\begin{multline}" + eq1 + "\\newline \\phantom{a} \\newline \phantom{a} \\newline \\phantom{a} \\newline\\shoveleft " + eq2 + "\\end{multline}")
+        show(eq1)
+        show(condition_text)
+        show(eq2)
