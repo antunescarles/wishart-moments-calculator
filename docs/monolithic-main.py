@@ -432,14 +432,14 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
     assert (k >= 1) , "Error: k < 0"
 
     n = Partitions(k).cardinality()
-
+    
     i_list = [1 .. n]
     i_list.reverse()
 
     @interact
     # def _(k = input_box(3,width = 8, label="$k$"),Ik_indx = input_box(Partitions(3).cardinality(),width = 8, label ="$i$")):
     def _(Ik_indx = slider(vmin = i_list, label ="$(i)$")):
-
+        
         s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
         # So s can range from 0 to n-1
         # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
@@ -519,7 +519,8 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
                     for s in range(1,P[i][k-j+1 -1]+1):
                         qm[i] *= p + (k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
                                                   # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
-            Dk_star[i,i] = qm[i].subs({f:1/2 , p : (p - n*f)}) # Evaluated in f = 1/2 and q= p-nf (o como aparece en el paper q = p-rf)
+            Dk_star[i,i] = qm[i].subs({p : (p - n*f)}) # Evaluated in q= p-nf (o como aparece en el paper q = p-rf)
+            Dk_star[i,i] = qm[i].subs({f: 1/2}) # Evaluated in f = 1/2 (this is the value of the param f we are interested in)
 
 #             print(P[i]," -->  ", qm[i].subs({f:1/2}).factor())
 
@@ -568,7 +569,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
     #     Ik_indx = n # Here we use indices starting at 1
         if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
 
-        D = {p:N/2,w:2*S}
+        D = {p:N/2 , w:2*S}
         Dinv = {p:N/2 , w : 2*Sinv^(-1) }
 
         for i in range(1,n+1):
@@ -582,14 +583,25 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
 #         print("\n")
 #         print(E[Ik_indx-1].subs(D)/k,"\n")
-        
-        E_inv_expr = E[Ik_indx-1].subs(Dinv)/k
+
+        ################ 16-8-21 ##################
+        ################ Fix the error in the inverse ##################
+
+        # The next one is the same than v_L, but for caution we use a fresh variable.
+        # When we have to print them, we'll substitute the variable used in v_L_inv for sigma^-1 in the latex representation.
+        v_L_inv = vector(SR,L)
+
+        E_inv = M_pnf_star*v_L_inv
+        ###########################################
+
+#         E_inv_expr = E[Ik_indx-1].subs(Dinv)/k # Old
+        E_inv_expr = E_inv[Ik_indx-1].subs(Dinv)/k
 #         print(E_inv_expr,"\n")
 
         ## Artifact to print E[\Sigma ^{-1}] nicely
         # 1) Extract the coefficients of every negatice power of Sinv
         # 2) Form a new expression multiplying the coef of the (-j)-th powe of Sinv for a new variable, something like Sj with latex_name \Sigma^{-j}
-        
+
         l = E_inv_expr.coefficients(Sinv)
 #         print("list of coeff of Sinv with its exponents: \n")
 #         print(l)
@@ -597,8 +609,6 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 #         print("New expression: \n")
 #         print(new_E_inv_expr)
 #         show(latex(new_E_inv_expr))
-
-        
 
         print("\n")
 
@@ -612,39 +622,19 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
             lsideDinv[var('b%d'%i)] = var('a%d'%i,latex_name = traceDecoratorInv(i,"{W}"))
 
         ## Formatting of the output
-        begin_multline_shoveleft = "\\begin{multline} \\shoveleft" # This is to make the text align to the left.
-        end_multline = "\\end{multline}"
-
-        # Show expectation
-        eq1 = LatexExpr("\\mathbb{E}(")+latex(v_L[Ik_indx-1].subs(lsideD)/k)+LatexExpr(") \\; = \\; ") +latex(E[Ik_indx-1].subs(D)/k)
-        
-#         show( begin_multline_shoveleft + eq1 + end_multline)
-#         print("\n")
-        
-        # Show expectation of the inverses
-        condition_text = "\\text{And if }\\, n \\geq 2k + (r-1) =  " + latex(2*k + n - 1) 
-        
-#         show(begin_multline_shoveleft + condition_text + end_multline)
 
         # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
-        E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k
+
+#         E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k #Old
+        E_inv_expr_lside = v_L_inv[Ik_indx-1].subs(lsideDinv)/k
         ll = E_inv_expr_lside.coefficients(Winv)
 
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
-
-#         print("\n")
-
-#         eq2 = "\\mathbb{E}("+ latex(new_E_inv_expr_lside) +") \\; = \\; "+latex(new_E_inv_expr)
-        eq2 = latex(new_E_inv_expr_lside)
-
-#         show( begin_multline_shoveleft + eq2 + end_multline )
-
-#         show("\\begin{multline}" + eq1 + "\\newline \\phantom{a} \\newline \phantom{a} \\newline \\phantom{a} \\newline\\shoveleft " + eq2 + "\\end{multline}")
-
-        # This fixes the error of display yielded by show()
+        
+        pretty_print(html(r'$(i) = () $)')
         pretty_print(html( r'$\mathbb{E}(%s) \; = \; %s $' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(E[Ik_indx-1].subs(D)/k)) ))
         pretty_print(html(r'$\phantom{a}$'))
-        pretty_print(html( r'$ \text{And if } \, n \geq 2k + (r-1) = %s \\$' % latex(2*k + n - 1) ))
+        pretty_print(html( r'$ \text{And if } \, n > 2k + (r-1)$'))
         pretty_print(html(r'$\phantom{a}$'))
         pretty_print(html(r'$\mathbb{E}(%s) ) \; = \; %s $'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
         
