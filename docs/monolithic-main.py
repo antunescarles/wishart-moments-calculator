@@ -631,11 +631,8 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
         
-#         pretty_print(html(r'$(i) =  $)')
-        pretty_print("(i) = "+LatexExpr(P[Ik_indx-1]))
-        pretty_print(html( r'$\mathbb{E}(%s) \; = \; %s $' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(E[Ik_indx-1].subs(D)/k)) ))
-        pretty_print(html(r'$\phantom{a}$'))
-        pretty_print(html( r'$ \text{And if } \, n > 2k + (r-1)$'))
-        pretty_print(html(r'$\phantom{a}$'))
-        pretty_print(html(r'$\mathbb{E}(%s) ) \; = \; %s $'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
+        pretty_print(html(r'$ (i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
+        pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $\mathbb{E}(%s) \; = \; %s$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(E[Ik_indx-1].subs(D)/k)) ))
+        pretty_print(html( r'$\text{And if } \, n > 2k + (r-1)$'))
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$\mathbb{E}(%s) ) \; = \; %s $</p>'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
         
