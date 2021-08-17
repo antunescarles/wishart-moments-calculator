@@ -522,6 +522,10 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
                                                   # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
             # Evaluate the expr. in q = p-r*fand then in f = 1/2 (as f=1/2 is the value of f we're interested in)
             Dk_star[i,i] = 1/(qm[i].subs({p : (p - r*f)}).subs({f:1/2}))
+#             z = (qm[i].subs({p : (p - r*f)}).subs({f:1/2}));
+#             show(1/z)
+#             print(parent(1/z))
+            
 
 #             print(P[i]," -->  ", qm[i].subs({f:1/2}).factor())
 
@@ -636,4 +640,3 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $\mathbb{E}(%s) \; = \; %s$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(E[Ik_indx-1].subs(D)/k)) ))
         pretty_print(html( r'$\text{And if } \, n > 2k + (r-1)$'))
         pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$\mathbb{E}(%s) ) \; = \; %s $</p>'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
-        
