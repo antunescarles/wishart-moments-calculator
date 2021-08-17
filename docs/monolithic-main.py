@@ -425,7 +425,7 @@ def computeNum_L(i,k,S):
 ######################################### wishart-calculator (main) ####################################
 
 @interact
-def wrpr(k = input_box(3,width = 8, label="$k$")):
+def wrpr(k = input_box(2,width = 8, label="$k$")):
 
     outmost_verbose = False
 
@@ -512,7 +512,10 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
         if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
         R3.<q> =  QQ['q'];
-
+        
+        
+        N = var('N',latex_name="n") #####
+        
         qm = [1]*n
         for i in range(0,n):
             lm = len(P[i])
@@ -521,7 +524,8 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
                         qm[i] *= p + (k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
                                                   # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
             # Evaluate the expr. in q = p-r*fand then in f = 1/2 (as f=1/2 is the value of f we're interested in)
-            Dk_star[i,i] = 1/(qm[i].subs({p : (p - r*f)}).subs({f:1/2}))
+            denom = (qm[i].subs({p : (p - r*f)}).subs({f:1/2}))
+            Dk_star[i,i] = 1/denom
 #             z = (qm[i].subs({p : (p - r*f)}).subs({f:1/2}));
 #             show(1/z)
 #             print(parent(1/z))
@@ -565,7 +569,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
         # Computations on demand
         W = var('W')
-        N = var('N',latex_name="n")
+#         N = var('N',latex_name="n")
         S = var('S',latex_name="\\Sigma")
         Sinv = var('Sinv', latex_name = "\\Sigma")
         Winv = var('Winv',latex_name = "W")
@@ -609,11 +613,10 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
 
         l = E_inv_expr.coefficients(Sinv)
 #         print("list of coeff of Sinv with its exponents: \n")
-#         print(l)
-        new_E_inv_expr = sum( [ c[0]*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] )
-#         print("New expression: \n")
-#         print(new_E_inv_expr)
-#         show(latex(new_E_inv_expr))
+
+#         new_E_inv_expr = sum( [ c[0]*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] )
+        new_E_inv_expr = sum( [ c[0].factor()*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] ) # factorizar el denominador
+
 
         print("\n")
 
