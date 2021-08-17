@@ -505,7 +505,8 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
             print(Mp)
 
         ## Calculamos la otra diagonal para el momento de la inversa
-        Dk_star = matrix(R2,n,n,0)
+        R2_frac = R2.fraction_field()
+        Dk_star = matrix(R2_frac,n,n,0)
 
         # To do: Chequear condición....
 
@@ -520,7 +521,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
                         qm[i] *= p + (k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
                                                   # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
             # Evaluate the expr. in q = p-r*fand then in f = 1/2 (as f=1/2 is the value of f we're interested in)
-            Dk_star[i,i] = qm[i].subs({p : (p - r*f)}).subs({f:1/2}) 
+            Dk_star[i,i] = 1/(qm[i].subs({p : (p - r*f)}).subs({f:1/2}))
 
 #             print(P[i]," -->  ", qm[i].subs({f:1/2}).factor())
 
@@ -630,7 +631,7 @@ def wrpr(k = input_box(3,width = 8, label="$k$")):
         ll = E_inv_expr_lside.coefficients(Winv)
 
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
-        
+
         pretty_print(html(r'$ (i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $\mathbb{E}(%s) \; = \; %s$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(E[Ik_indx-1].subs(D)/k)) ))
         pretty_print(html( r'$\text{And if } \, n > 2k + (r-1)$'))
