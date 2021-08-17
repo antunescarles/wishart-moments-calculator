@@ -58,30 +58,41 @@
             <p>
                 This is a SAGE based moment calculator for Wishart distributed random variables.
             </p>
-            <p>Given \( k\in \mathbb{N} \) and \( W \sim \mathrm{Wishart}(n , \Sigma) \) we calculate the expectation of 
-                \[ \frac{1}{k!}L_{(i)} (W) = r_{(i)} (W) \sum_{j=1}^k j i_j \frac{W^j}{\hbox{tr}\,(W^j)} \]
-                for every <em>portrait</em> \( (i)\in I_k = \{ (i_1,\ldots,i_k)\in\mathbb{N}^k \,:\, \sum_{j=1}^k i_j = k \} \), with \(r_{(i)}(W)\) defined as in <a href="https://www.jstor.org/stable/4616830?seq=1">[Letac and Massam, 2004]</a>. 
+            
+            <p>
+                Among others, we compute the expectation of $W^k$ for $k\in \mathbb{N} $ and $W^{-k}$ for $n > 2k + (r-1)$, for $W \sim \mathrm{Wishart} (n, \Sigma)$, with parameters $n \in \mathbb{N}$ and $\Sigma $ (positive definite matrix of dimension $r$).
+            </p>
+            
+            <p>
+                More specifically, following <a href="https://www.jstor.org/stable/4616830?seq=1">[Letac and Massam, 2004]</a>, we compute the moments of \(\frac{1}{k }L_{(i)} (W)\), where, for every portrait \( (i)\in I_k = \{ (i_1,\ldots,i_k)\in\mathbb{N}^k \,:\, \sum_{j=1}^k i_j = k \} , \) \[ L_{(i)} (W) = r_{(i)} (W) \sum_{j=1}^k j i_j \frac{W^j}{\hbox{tr}\,(W^j)} \] with $$r_{(i)}(W) = \prod_{j=1}^k \left(\hbox{tr} (W^j) \right)^{i_j}.$$ Here $\hbox{tr}(A)$ indicates the trace of a square matrix. 
             </p>
             <p>
-                Here \(W\) is of size \(r\!\times\! r\) where \(r\) denotes the number of portraits in \(I_k\).
+                We also compute the expectation of \( \frac{1}{k}L_{(i)} (W^{-1}) \) for every portrait $(i) \in I_k$  for $n > 2k + (p-1)$.
             </p>
+            <p>
+                The index $k$ should be entered as a parameter for the computation. The leftmost position of the slider is  $(i) = (k)$, which results in the moments $ \mathbb{E}(W^{\pm k}) $. 
+            </p>
+            
+<!--
             <p>
                 Portraits indexing this random variables are considered to be sorted by <a href="https://en.wikipedia.org/wiki/Dominance_order">dominance order</a>. For instance, for \(k=4\)
                 \[ (1,1,1,1) \prec (2,1,1) \prec (2,2) \prec (3,1) \prec (4) \]
             </p>
+            
             <p>
                 We also compute the expectation of \( \frac{1}{k!}L_{(i)} (W^{-1}) \) when certain condition over \( n \) is met.
             </p>
+            
             <p>
                 In particular, when \( (i) = (k) \), here the rightmost position of the slider, moments \( \mathbb{E}(W^{\pm k}) \) can be obtained. . With this notation, the \( \mathbb{E}(W^{\pm k}) \) correspond to the \(r\)-th position of the list of portraits. Also \(r= \mathrm{dim}\,W\).
             </p>
-            
+-->         
             <p>
                 <b>Capabilities:</b>
             </p>
             <ul>
                 <li>
-                    The \( \rm\LaTeX \) commands of every expression can be obtained by right-clicking in the formula and then selecting
+                    The \( \rm\LaTeX \) commands for every expression can be obtained by right-clicking the formula and then selecting
                     <code>Show math as</code> > <code>TeX commands</code>
                 </li>
                 <li>
