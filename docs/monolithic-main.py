@@ -541,10 +541,10 @@ def wrpr(k = input_box(2,width = 8, label="$k$")):
         # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
         M_pnf_star = IBk*Dk_star*Bk
         
-        show("B_k = "+ latex(Bk))
-        show("B_k^{-1} = "+ latex(IBk))
         
         ## Esto es para cheuqear un error nomas
+#         show("B_k = "+ latex(Bk))
+#         show("B_k^{-1} = "+ latex(IBk))
         
 #         DD = Dk_star.subs({p:p-r*f}).subs({p:N/2 , f:1/2})
 # #         pretty_print(html(r'$%s$ ' % N/2))
