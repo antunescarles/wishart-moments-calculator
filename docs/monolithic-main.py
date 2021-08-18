@@ -514,6 +514,7 @@ def wrpr(k = input_box(2,width = 8, label="$k$")):
         R3.<q> =  QQ['q'];
         
         
+        
         N = var('N',latex_name="n") #####
         
         qm = [1]*n
@@ -539,6 +540,18 @@ def wrpr(k = input_box(2,width = 8, label="$k$")):
 
         # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
         M_pnf_star = IBk*Dk_star*Bk
+        
+        show("B_k = "+ latex(Bk))
+        show("B_k^{-1} = "+ latex(IBk))
+        
+        ## Esto es para cheuqear un error nomas
+        
+#         DD = Dk_star.subs({p:p-r*f}).subs({p:N/2 , f:1/2})
+# #         pretty_print(html(r'$%s$ ' % N/2))
+#         pretty_print(html(r'<center>$D_k^*(p-rf) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1].factor()), latex(DD[1,0].factor()) , latex(DD[1,1].factor()))))
+# #         show("D_k^*(p-rf)="+latex(Dk_star.subs({p: p-r*f}).factor()))
+        
+        
 
         ## Computations of the moments
 
@@ -579,8 +592,9 @@ def wrpr(k = input_box(2,width = 8, label="$k$")):
         if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
 
         D = {p:N/2 , w:2*S}
-        Dinv = {p:N/2 , w : 2*Sinv^(-1) }
-
+#         Dinv = {p:N/2 , w : 2*Sinv^(-1) } # Hay que invertir el 2 tambien
+        Dinv = {p:N/2 , w : (2*Sinv)^(-1) }
+        
         for i in range(1,n+1):
     #         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
             D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
