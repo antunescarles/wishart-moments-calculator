@@ -541,15 +541,21 @@ def wrpr(k = input_box(2,width = 8, label="$k$")):
         # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
         M_pnf_star = IBk*Dk_star*Bk
         
-        
         ## Esto es para cheuqear un error nomas
-#         show("B_k = "+ latex(Bk))
-#         show("B_k^{-1} = "+ latex(IBk))
-        
+        show("B_k = "+ latex(Bk))
+        show("B_k^{-1} = "+ latex(IBk))
+
 #         DD = Dk_star.subs({p:p-r*f}).subs({p:N/2 , f:1/2})
-# #         pretty_print(html(r'$%s$ ' % N/2))
-#         pretty_print(html(r'<center>$D_k^*(p-rf) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1].factor()), latex(DD[1,0].factor()) , latex(DD[1,1].factor()))))
-# #         show("D_k^*(p-rf)="+latex(Dk_star.subs({p: p-r*f}).factor()))
+#         q = var('q')
+#         DD = Dk_star.subs({p:q})
+#         pretty_print(html(r'<center>$D_k^*(q) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
+        
+#         DD = DD.subs({q:p-r*f})
+#         pretty_print(html(r'<center>$D_k^*(p-rf) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
+        
+        DD = Dk_star.subs({p:N/2})
+        pretty_print(html(r'<center>$D_k^*(\frac{n-r}{2}) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
+#         show("D_k^*(p-rf)="+latex(Dk_star.subs({p: p-r*f}).factor()))
         
         
 
