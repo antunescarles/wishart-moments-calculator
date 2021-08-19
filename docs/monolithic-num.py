@@ -428,171 +428,232 @@ r = A.nrows()
 assert (r == A.ncols()), "The matrix given is not squared."
 assert (A.is_symmetric()), "The matrix given is not symmetric."
 
-outmost_verbose = False
+@interact
+def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width = 8,label = "$n$")):
 
-## Check that the dim of the matrix is in fact a number of partitions.
-i=1
-r_correct = False #flag that indicates when r is indeed the number of partitions of some k.
-passed = False # flag that is set true when we get to some i with Partitions(i).cardinality()> k
+    outmost_verbose = False
 
-k=NaN
-Ik_indx = 0
+    assert (k >= 1) , "Error: k < 0"
 
-while (not r_correct and not passed and i<=10) :
-    card = Partitions(i).cardinality()
-#     print("r = %d and card = %d"% (r,card))
-    if r == card:
-        r_correct = True
-        k = i
-    else:
-        if card > r:
-            passed = True
-    i+=1
+    n = Partitions(k).cardinality()
+    
+    i_list = [1 .. n]
+    i_list.reverse()
 
-assert (r_correct), "The size of the matrix given is not the cardinality of the number of partitions of any k (at least for k<=10)"
+    @interact
+    # def _(k = input_box(3,width = 8, label="$k$"),Ik_indx = input_box(Partitions(3).cardinality(),width = 8, label ="$i$")):
+    def _(Ik_indx = slider(vmin = i_list, label ="$(i)$")):
+        
+        s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
+        # So s can range from 0 to n-1
+        # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+        
+        # Validation of the input
+        assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
 
-# TO CHANGE. Use r or n uniformly troughout the script.
-n = r
+#         print("k = %d , r = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
 
-s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
-      # So s can range from 0 to n-1
-      # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+        verbose = False # if verbose == True intermediate computations and checkings are displayed.
 
-print("k = %d , r = %d " % (k,n),"\n")
+        coef = computeJack(k,s,verbose)
+        Bk = matrix(QQ,1,coef['p'])
+
+        t=0
+    #     print("s = %d " % 0,coef['p'])
+        t+=1
+        # for t in range(1,n-1):
+        while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
+            coef = computeJack(k,t,verbose)
+            row =  matrix(QQ,1,coef['p'])
+    #         print("s = %d " % t,coef['p'])
+            Bk = Bk.stack(row)
+            t+=1
+
+        if outmost_verbose: 
+            print("\nBk : \n")
+            print(Bk, "\n")
+
+        R2.<f,p,r> = QQ['f,p,r']
+
+        P = Partitions(k).list()
+
+        Dk = matrix(R2,n,n,0)
+
+        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
+        pm = [1]*n
+        for i in range(0,n):
+            lm = len(P[i])
+            for j in range(1,lm+1):
+                    for s in range(1,P[i][j-1]+1):
+                        pm[i] *= p +s-1- (j-1)*f
+            Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
+
+            if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
+
+        if outmost_verbose: 
+            print("\nDk:\n")
+            print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
+
+        # Compute Mp 
+        IBk = Bk.inverse()
+
+        if outmost_verbose: 
+            print("\n")
+            print("IBk : \n")
+            print(IBk,"\n")
+
+        Mp = IBk*Dk*Bk
+
+        if outmost_verbose: 
+            print("Mp : \n")
+            print(Mp)
+
+        ## Calculamos la otra diagonal para el momento de la inversa
+        R2_frac = R2.fraction_field()
+        Dk_star = matrix(R2_frac,n,n,0)
+
+        # To do: Chequear condición....
+
+        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
+        R3.<q> =  QQ['q'];
+        
+        
+        
+        N = var('N',latex_name="n") #####
+        
+        qm = [1]*n
+        for i in range(0,n):
+            lm = len(P[i])
+            for j in range(k-lm+1,k+1):
+                    for s in range(1,P[i][k-j+1 -1]+1):
+                        qm[i] *= p + (k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
+                                                  # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
+            # Evaluate the expr. in q = p-r*fand then in f = 1/2 (as f=1/2 is the value of f we're interested in)
+            denom = (qm[i].subs({p : (p - r*f)}).subs({f:1/2}))
+            Dk_star[i,i] = 1/denom
+        
+        # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
+        M_pnf_star = IBk*Dk_star*Bk
+
+        ## Esto es para cheuqear un error nomas
+#         show("B_k = "+ latex(Bk))
+#         show("B_k^{-1} = "+ latex(IBk))
+
+#         DD = Dk_star.subs({p:N/2})
+#         pretty_print(html(r'<center>$D_k^*(\frac{n-r}{2}) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
+
+        ## Computations of the moments
+
+        P.reverse()
+        # print(P,"\n")
+
+        r = []
+        L = []
+        Lnum = [] # for the right side.
+        for j in range(0,n):
+            r.append(toPortrait(P[j],k))
+            L.append(compute_L(r[j],k))
+            Lnum.append(computeNum_L(r[j],k,2*A)) # For the right-side that is not symbolic.
+
+        # for j in range(0,len(r)):
+        #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
+
+        v_L = vector(SR,L)
+
+        if outmost_verbose: 
+            print("\n")
+            print("v_L = " , v_L,"\n")
+
+            print("E = Mp*[r_(i)(w)]_(i): \n")
+
+        E = Mp*v_L
+        if outmost_verbose: 
+            for i in range(0,len(E)):
+                print(E[i])
+
+        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
+        Enum = [NaN]*n # Numerical (concrete) expectation
+
+        for i in range(0,n):
+            Enum[i] = sum([Mp[i,j].subs({p: N_param/2})*Lnum[j] for j in range(0,n)])
+
+        # Computations on demand
+        W = var('W')
+#         N = var('N',latex_name="n")
+        S = var('S',latex_name="\\Sigma")
+        Sinv = var('Sinv', latex_name = "\\Sigma")
+        Winv = var('Winv',latex_name = "W")
+
+    #     Ik_indx = n-1
+    #     Ik_indx = n # Here we use indices starting at 1
+        if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
+
+        D = {p:N/2 , w:2*S}
+#         Dinv = {p:N/2 , w : 2*Sinv^(-1) } # Hay que invertir el 2 tambien
+        Dinv = {p:N/2 , w : (2*Sinv)^(-1) }
+        
+        for i in range(1,n+1):
+    #         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
+            D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
+
+            Dinv[var('b%d'%i)] = (2^(-i))*var('a%d'%i,latex_name = traceDecoratorInv(i,"{\\Sigma}"))
 
 
+        if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
 
-verbose = False # if verbose == True intermediate computations and checkings are displayed.
+#         print("\n")
+#         print(E[Ik_indx-1].subs(D)/k,"\n")
 
+        ################ 16-8-21 ##################
+        ################ Fix the error in the inverse ##################
 
+        # The next one is the same than v_L, but for caution we use a fresh variable.
+        # When we have to print them, we'll substitute the variable used in v_L_inv for sigma^-1 in the latex representation.
+        v_L_inv = vector(SR,L)
 
-# Compute the jack polynomial of order k associated to partition s in the monomial and power basis, EVALUATED IN t=2
-# coef = []
-# coef.append(computeJack(k,0,False)['p'])
-# coef.append(computeJack(k,1,False)['p'])
-# coef.append(computeJack(k,2,False)['p'])
-# coef.append(computeJack(k,3,False)['p'])
-# coef.append(computeJack(k,4,False)['p'])
-# coef.append(computeJack(k,5,False)['p'])
-# coef.append(computeJack(k,6,False)['p']) # implementar caso s = n-1
+        E_inv = M_pnf_star*v_L_inv
+        ###########################################
 
-coef = computeJack(k,s,verbose)
-Bk = matrix(QQ,1,coef['p'])
+#         E_inv_expr = E[Ik_indx-1].subs(Dinv)/k # Old
+        E_inv_expr = E_inv[Ik_indx-1].subs(Dinv)/k
+#         print(E_inv_expr,"\n")
 
-t=0
-#     print("s = %d " % 0,coef['p'])
-t+=1
-# for t in range(1,n-1):
-while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
-    coef = computeJack(k,t,verbose)
-    row =  matrix(QQ,1,coef['p'])
-#         print("s = %d " % t,coef['p'])
-    Bk = Bk.stack(row)
-    t+=1
+        ## Artifact to print E[\Sigma ^{-1}] nicely
+        # 1) Extract the coefficients of every negatice power of Sinv
+        # 2) Form a new expression multiplying the coef of the (-j)-th powe of Sinv for a new variable, something like Sj with latex_name \Sigma^{-j}
 
-if outmost_verbose: 
-    print("\nBk : \n")
-    print(Bk, "\n")
+        l = E_inv_expr.coefficients(Sinv)
+#         print("list of coeff of Sinv with its exponents: \n")
 
-R2.<f,p> = QQ['f,p']
-
-P = Partitions(k).list()
-
-Dk = matrix(R2,n,n,0)
+#         new_E_inv_expr = sum( [ c[0]*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] )
+        new_E_inv_expr = sum( [ c[0].factor()*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] ) # factorizar el denominador
 
 
+        print("\n")
 
-if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
-pm = [1]*n
-for i in range(0,n):
-    lm = len(P[i])
-    for j in range(1,lm+1):
-            for s in range(1,P[i][j-1]+1):
-                pm[i] *= p +s-1- (j-1)*f
-    Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
+        lsideD = {w : W}
+        lsideDinv = {w:Winv^(-1)}
 
-    if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
+        for i in range(1,n+1):
 
-if outmost_verbose: 
-    print("\nDk:\n")
-    print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
+            lsideD[var('b%d'%i)] = var('b%d'%i,latex_name = traceDecorator(i,"{W}"))
 
-# Compute Mp 
-IBk = Bk.inverse()
+            lsideDinv[var('b%d'%i)] = var('a%d'%i,latex_name = traceDecoratorInv(i,"{W}"))
 
-if outmost_verbose: 
-    print("\n")
-    print("IBk : \n")
-    print(IBk,"\n")
+        ## Formatting of the output
 
-Mp = IBk*Dk*Bk
+        # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
 
-if outmost_verbose: 
-    print("Mp : \n")
-    print(Mp)
+#         E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k #Old
+        E_inv_expr_lside = v_L_inv[Ik_indx-1].subs(lsideDinv)/k
+        ll = E_inv_expr_lside.coefficients(Winv)
 
+        new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
+        
+        # Show the parameters
+        show("2\\Sigma = "+ latex(2*A))
 
-## Computations of the moments
-
-P.reverse()
-# print(P,"\n")
-
-r = []
-L = []
-Lnum = []
-
-#     A = random_matrix(QQ,n,n)
-#     A = identity_matrix(k)
-
-for j in range(0,n):
-    r.append(toPortrait(P[j],k))
-    L.append(compute_L(r[j],k))
-    Lnum.append(computeNum_L(r[j],k,2*A))
-
-# for j in range(0,len(r)):
-#     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
-# print("\nLnum: \n",Lnum)
-
-# print("\nL: \n",L)
-
-v_L = vector(SR,L)
-# print(Lnum[0].parent())
-
-
-#     print("\nv_Lnum: \n",v_Lnum)
-
-if outmost_verbose: 
-    print("\n")
-    print("v_L = " , v_L,"\n")
-
-    print("E = Mp*[r_(i)(w)]_(i): \n")
-
-E = Mp*v_L
-#     Enum = Mp*v_Lnum
-Enum = [NaN]*n
-#Para Enum hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
-for i in range(0,n):
-#     print(Mp[0,0]*Lnum[0])
-    Enum[i] = sum([Mp[i,j]*Lnum[i] for j in range(0,n)])
-#     print("\n",Enum[i],"\n")
-
-if outmost_verbose: 
-    for i in range(0,len(E)):
-        print(E[i])
-
-# Computations on demand
-W = var('W')
-N = var('N',latex_name="n")
-S = var('S',latex_name="\\Sigma")
-
-if outmost_verbose: print('\nPara Jero: \n')
-
-#     Ik_indx = n-1
-#     Ik_indx = n # Here we use indices starting at 1
-if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
-
-D = {p:N/2,w:2*S}
-
-if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
-show("2\\Sigma = "+ latex(2*A))
-show("\\mathbb{E}("+latex(v_L[Ik_indx-1].subs({w : W})/k)+") = "+latex(Enum[Ik_indx-1].subs({p:N/2})/k))
+        pretty_print(html(r'$ (i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
+        pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $\mathbb{E}(%s) \; = \; %s$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(Enum[Ik_indx-1].subs({p:N/2})/k)) ))
+        pretty_print(html( r'$\text{And if } \, n > 2k + (r-1) = %s $'% latex(2*k+ dim_Sigma-1)))
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$\mathbb{E}(%s) \; = \; %s $</p>'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
