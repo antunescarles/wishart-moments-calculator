@@ -428,6 +428,8 @@ r = A.nrows()
 assert (r == A.ncols()), "The matrix given is not squared."
 assert (A.is_symmetric()), "The matrix given is not symmetric."
 
+dim_Sigma = A.nrows()
+
 @interact
 def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width = 8,label = "$n$")):
 
@@ -651,9 +653,9 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
         
         # Show the parameters
-        show("2\\Sigma = "+ latex(2*A))
-
-        pretty_print(html(r'$ (i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
+        pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
+        pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$2\Sigma = %s $</p>' %latex(2*A) ))
+        
         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $\mathbb{E}(%s) \; = \; %s$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(Enum[Ik_indx-1].subs({p:N/2})/k)) ))
         pretty_print(html( r'$\text{And if } \, n > 2k + (r-1) = %s $'% latex(2*k+ dim_Sigma-1)))
         pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$\mathbb{E}(%s) \; = \; %s $</p>'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
