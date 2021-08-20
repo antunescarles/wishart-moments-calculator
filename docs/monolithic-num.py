@@ -549,13 +549,17 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
         P.reverse()
         # print(P,"\n")
 
-        r = []
+        rr = [] # this shouldn't be named 'r' bc it crashes with the name of the parameter r that represents de dimension of Sigma
         L = []
         Lnum = [] # for the right side.
+        L_inv_num = []
         for j in range(0,n):
-            r.append(toPortrait(P[j],k))
-            L.append(compute_L(r[j],k))
-            Lnum.append(computeNum_L(r[j],k,2*A)) # For the right-side that is not symbolic.
+            rr.append(toPortrait(P[j],k))
+            L.append(compute_L(rr[j],k))
+            Lnum.append(computeNum_L(rr[j],k,2*A)) # For the right-side that is not symbolic.
+            
+            assert A.is_invertible() , "Error: A is not invertible." # think what happens if A is not over QQ, but over RR.
+            L_inv_num.append(computeNum_L(rr[j],k,(2*A)^(-1))) # For the right-side of the inverse that is not symbolic. We call the same function but with the inverse of A as parameter.
 
         # for j in range(0,len(r)):
         #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
@@ -577,7 +581,15 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
         Enum = [NaN]*n # Numerical (concrete) expectation
 
         for i in range(0,n):
-            Enum[i] = sum([Mp[i,j].subs({p: N_param/2})*Lnum[j] for j in range(0,n)])
+            Enum[i] = sum([Mp[i,j].subs({p: N_param/2 })*Lnum[j] for j in range(0,n)])
+
+        # Concrete inverse
+        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
+        E_inv_num = [NaN]*n # Numerical (concrete) expectation
+
+        if N_param > 2*k + (dim_Sigma -1): # Condition for the inverse to be calculated
+            for i in range(0,n):
+                E_inv_num[i] = sum([M_pnf_star[i,j].subs({p: N_param/2, r: dim_Sigma})*L_inv_num[j] for j in range(0,n)])
 
         # Computations on demand
         W = var('W')
@@ -653,9 +665,12 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
         new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
         
         # Show the parameters
+#         show("2\\Sigma = "+ latex(2*A))
+        
+
         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$2\Sigma = %s $</p>' %latex(2*A) ))
-        
         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $\mathbb{E}(%s) \; = \; %s$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(Enum[Ik_indx-1].subs({p:N/2})/k)) ))
-        pretty_print(html( r'$\text{And if } \, n > 2k + (r-1) = %s $'% latex(2*k+ dim_Sigma-1)))
-        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$\mathbb{E}(%s) \; = \; %s $</p>'  % (latex(new_E_inv_expr_lside) , latex(new_E_inv_expr)) ))
+        pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*k+ dim_Sigma-1)))
+        if N_param > 2*k + (dim_Sigma - 1):
+            pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$\mathbb{E}(%s) \; = \; %s $</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
