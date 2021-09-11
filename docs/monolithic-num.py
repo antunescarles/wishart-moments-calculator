@@ -669,7 +669,7 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
         
 
         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
-        pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
+        pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\Sigma = %s $$</p>' %latex(A) ))
         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(Enum[Ik_indx-1].subs({p:N/2})/k)) ))
         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*k+ dim_Sigma-1)))
         if N_param > 2*k + (dim_Sigma - 1):
