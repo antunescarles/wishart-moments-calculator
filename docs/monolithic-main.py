@@ -595,7 +595,5 @@ def wrpr(k = input_box(2,width = 8, label="$k$")):
             wishartk.pretty_print_moment(Ik_indx-1)
 
         if inverse:
-            pretty_print(html( r'$\text{If } \, n > 2%s + (r-1)$' % wishartk.k))
-
-
+            pretty_print(html( r'$\text{If } \, n > %d + (r-1)$' % (2*wishartk.k)))
             wishartk.pretty_print_moment(Ik_indx-1,True)
