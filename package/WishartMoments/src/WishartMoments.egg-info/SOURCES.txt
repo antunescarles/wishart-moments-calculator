@@ -1,0 +1,13 @@
+LICENSE.py
+README.md
+pyproject.toml
+setup.cfg
+src/WishartMoments/Expectations.py
+src/WishartMoments/Jacks2.py
+src/WishartMoments/ObjectWithPartitions.py
+src/WishartMoments/__init__.py
+src/WishartMoments/test.py
+src/WishartMoments.egg-info/PKG-INFO
+src/WishartMoments.egg-info/SOURCES.txt
+src/WishartMoments.egg-info/dependency_links.txt
+src/WishartMoments.egg-info/top_level.txt
