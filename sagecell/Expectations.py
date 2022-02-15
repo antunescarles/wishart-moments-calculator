@@ -1,6 +1,6 @@
-from sage.all import *
-from .ObjectWithPartitions import *
-from .Jacks import *
+# from sage.all import *
+# from .ObjectWithPartitions import *
+# from .Jacks2 import *
 
 
 import math # To use the method isnan() to check if variables are NaN or not.
