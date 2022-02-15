@@ -410,7 +410,7 @@ class Expectations(ObjectWithPartitions):
 
         return (Lnum,L_inv_num)
 
-    def wishart_expectations_numval(self,Sigma,N_param,inverse):
+    def wishart_expectations_numval(self,Sigma,n_param,inverse):
 
         A = Sigma
         dim_Sigma = Sigma.nrows()
@@ -432,11 +432,11 @@ class Expectations(ObjectWithPartitions):
 
         if not(inverse):
             for i in range(0,self.s):
-                Enum[i] = sum([self.M['+'][i,j].subs({p: N_param/2 })*Lnum[j] for j in range(0,self.s)])
+                Enum[i] = sum([self.M['+'][i,j].subs({p: n_param/2 })*Lnum[j] for j in range(0,self.s)])
         else:
-            if (N_param > 2*self.k + (dim_Sigma -1)): # Condition for the inverse to be calculated
+            if (n_param > 2*self.k + (dim_Sigma -1)): # Condition for the inverse to be calculated
                 for i in range(0,self.s):
-                    E_inv_num[i] = sum([self.M['-'][i,j].subs({p: N_param/2, r: dim_Sigma})*L_inv_num[j] for j in range(0,self.s)])
+                    E_inv_num[i] = sum([self.M['-'][i,j].subs({p: n_param/2, r: dim_Sigma})*L_inv_num[j] for j in range(0,self.s)])
 
         return (Enum, E_inv_num)
 
@@ -453,7 +453,7 @@ class Expectations(ObjectWithPartitions):
 
         return (random_variable_inv, expected_value_inv)
 
-    def evaluate_moment(self, t, N_param, Sigma, inverse=False):
+    def evaluate_moment(self, t, n_param, Sigma, inverse=False):
         self.compute_M(inverse) # Computes M['+'] or M['-'] only if it hasn't already been computed.
 
         A = Sigma
@@ -464,7 +464,7 @@ class Expectations(ObjectWithPartitions):
         self.R2 = PolynomialRing(QQ,'f,p,r')
         (f,p,r) = self.R2.gens()
 
-        (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, N_param,inverse)
+        (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, n_param,inverse)
 
         if inverse == False:
             variable = (self.v_L[t]/self.k).subs({w:W}).substitute_function(tr,trace)
@@ -488,8 +488,8 @@ class Expectations(ObjectWithPartitions):
 #             eval_m = (variable, evaluated_expectation)
         return eval_m
 
-    def pretty_print_eval_moment(self, t, N_param, Sigma, inverse = False):
-        eval_m = self.evaluate_moment(t,N_param,Sigma,inverse)
+    def pretty_print_eval_moment(self, t, n_param, Sigma, inverse = False):
+        eval_m = self.evaluate_moment(t,n_param,Sigma,inverse)
         pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m[0]),latex(eval_m[1])) ))
 
 #         (lsideD, new_E_inv_expr_lside, new_E_inv_expr) = self.expectations_expressions(Ik_indx)
@@ -500,10 +500,10 @@ class Expectations(ObjectWithPartitions):
 #         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
 #         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(self.v_L[Ik_indx-1].subs(lsideD)/self.k) , latex(Enum[Ik_indx-1].subs({p:n/2})/self.k)) ))
 #         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*self.k+ dim_Sigma-1)))
-#         if N_param > 2*self.k + (dim_Sigma - 1):
+#         if n_param > 2*self.k + (dim_Sigma - 1):
 #             pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
 
-#     def evaluate_moment(self, Sigma, N_param, Ik_indx):
+#     def evaluate_moment(self, Sigma, n_param, Ik_indx):
 #         A = Sigma
 #         dim_Sigma = Sigma.nrows()
 
@@ -511,13 +511,13 @@ class Expectations(ObjectWithPartitions):
 
 #         (lsideD, new_E_inv_expr_lside, new_E_inv_expr) = self.expectations_expressions(Ik_indx)
 
-#         (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, N_param)
+#         (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, n_param)
 
 #         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(self.P[Ik_indx-1])))
 #         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
 #         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(self.v_L[Ik_indx-1].subs(lsideD)/self.k) , latex(Enum[Ik_indx-1].subs({p:n/2})/self.k)) ))
 #         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*self.k+ dim_Sigma-1)))
-#         if N_param > 2*self.k + (dim_Sigma - 1):
+#         if n_param > 2*self.k + (dim_Sigma - 1):
 #             pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
 
     def number_of_expectations(self):
