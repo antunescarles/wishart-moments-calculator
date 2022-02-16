@@ -1,11 +1,12 @@
 from sage.all import *
 from .ObjectWithPartitions import *
-from .Jacks import *
+from .Jacks2 import *
 
 
 import math # To use the method isnan() to check if variables are NaN or not.
 import numpy as np
 from bisect import bisect_left ###
+from numpy.linalg import matrix_power
 
 def decorator(self,*args):
     # We need to ensure that the expression that is passed is either a variable or a negative power of a variable. This won't work otherwise.
@@ -366,7 +367,10 @@ class Expectations(ObjectWithPartitions):
         return L_i
 
     def compute_numerical_value_r(self,i,S):
-        tr = [ (S**(j+1)).trace() for j in range(0,self.k)]
+        # tr = [ (S**(j+1)).trace() for j in range(0,self.k)]
+        tr = [ np.trace(matrix_power(S,j+1)) for j in range(0,self.k)] # Numpy version
+
+
         r_i = prod([ (tr[j])**(i[j]) for j in range(0,self.k) ])
         return (r_i , tr)
 
@@ -374,7 +378,9 @@ class Expectations(ObjectWithPartitions):
 
         (r_i,tr) = self.compute_numerical_value_r(i,S)
 
-        L_i = sum([ r_i*(j+1)*i[j]*S**(j+1)/tr[j] for j in range(0,self.k) ])
+        # L_i = sum([ r_i*(j+1)*i[j]*S**(j+1)/tr[j] for j in range(0,self.k) ])
+        L_i = sum([ r_i*(j+1)*i[j]*matrix_power(S,j+1)/tr[j] for j in range(0,self.k) ]) # Numpy version
+
         # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
 
         return L_i
@@ -403,17 +409,17 @@ class Expectations(ObjectWithPartitions):
         for j in range(0,self.s):
             Lnum.append(self.compute_numerical_value_L(self.rr[j],2*A)) # For the right-side that is not symbolic.
 
-            assert A.is_invertible() , "Error: A is not invertible." # think what happens if A is not over QQ, but over RR.
+            # assert A.is_invertible() , "Error: A is not invertible." # think what happens if A is not over QQ, but over RR.
 
             # For the right-side of the inverse that is not symbolic. We call the same function but with the inverse of A as parameter.
-            L_inv_num.append(self.compute_numerical_value_L(self.rr[j],(2*A)**(-1)))
+            L_inv_num.append(self.compute_numerical_value_L(self.rr[j],matrix_power(2*A ,-1)))
 
         return (Lnum,L_inv_num)
 
     def wishart_expectations_numval(self,Sigma,n_param,inverse):
 
         A = Sigma
-        dim_Sigma = Sigma.nrows()
+        dim_Sigma = Sigma.shape[0]
 
         outmost_verbose = False
 
@@ -432,7 +438,7 @@ class Expectations(ObjectWithPartitions):
 
         if not(inverse):
             for i in range(0,self.s):
-                Enum[i] = sum([self.M['+'][i,j].subs({p: n_param/2 })*Lnum[j] for j in range(0,self.s)])
+                Enum[i] = sum([self.M['+'][i,j].subs({p: n_param/2, f:1/2 })*Lnum[j] for j in range(0,self.s)])
         else:
             if (n_param > 2*self.k + (dim_Sigma -1)): # Condition for the inverse to be calculated
                 for i in range(0,self.s):
@@ -457,7 +463,7 @@ class Expectations(ObjectWithPartitions):
         self.compute_M(inverse) # Computes M['+'] or M['-'] only if it hasn't already been computed.
 
         A = Sigma
-        dim_Sigma = Sigma.nrows()
+        dim_Sigma = Sigma.shape[0]
 
         # Avoid syntactic sugar!
         # R2.<f,p,r> = QQ['f,p,r']
@@ -468,7 +474,8 @@ class Expectations(ObjectWithPartitions):
 
         if inverse == False:
             variable = (self.v_L[t]/self.k).subs({w:W}).substitute_function(tr,trace)
-            evaluated_expectation = Enum[t].subs({f:1/2})
+            # evaluated_expectation = Enum[t].subs({f:1/2})
+            evaluated_expectation = Enum[t]
         else:
             variable = (self.v_L_inv[t]/self.k).subs({w:self.W**(-1)}).substitute_function(tr,trace)
             variable = self.prettify_negative_powers_of_matrix_var(variable, W)
@@ -505,7 +512,7 @@ class Expectations(ObjectWithPartitions):
 
 #     def evaluate_moment(self, Sigma, n_param, Ik_indx):
 #         A = Sigma
-#         dim_Sigma = Sigma.nrows()
+#         dim_Sigma = Sigma.shape[0]
 
 #         R2.<f,p,r> = QQ['f,p,r']
 
