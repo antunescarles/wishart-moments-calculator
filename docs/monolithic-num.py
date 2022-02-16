@@ -568,8 +568,6 @@ class Expectations(ObjectWithPartitions):
         
 ############### Interactive interface ###########################
 
-Sigma = identity_matrix(3)
-
 @interact
 def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width = 8,label = "$n$") , positive =checkbox(False,"Compute moment of $W$"), inverse = checkbox(True,label = 'Compute moment of $W^{-1}$') ):
 
@@ -589,6 +587,8 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
         assert (1 <= Ik_indx and Ik_indx <= wishartk.number_of_expectations()) , "Error: i < 0 or i > n (#partitions)"
         
         pretty_print(html( r'$(i) = %s$' %  latex(tuple(wishartk.partition_to_portrait(wishartk.P[Ik_indx-1]))) ))
+        
+        pretty_print(html(r'$ \Sigma = %s $' % latex(Sigma)))
 
         if positive:
             wishartk.pretty_print_eval_moment(Ik_indx-1,N_param,Sigma)
