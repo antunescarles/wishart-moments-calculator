@@ -1,0 +1,27 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Wishart Moments Calculator
+message: Please cite this software using these metadata.
+type: software
+authors:
+  - given-names: Carlos Santiago
+    family-names: Antunes Percíncula
+    email: antunes.p.carlos@hotmail.com
+    affiliation: Universidad Nacional del Litoral
+repository-code: >-
+  https://github.com/antunescarles/wishart-moments-calculator
+url: >-
+  https://antunescarles.github.io/wishart-moments-calculator/
+abstract: >-
+  A Python package using SAGE to compute all
+  invariant Wishart moments and a web interface for
+  those computations.
+keywords:
+  - wishart
+  - moments
+  - sage
+  - python
+  - web
+  - interface
