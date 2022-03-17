@@ -1,6 +1,6 @@
-# from sage.all import *
-# from .ObjectWithPartitions import *
-# from .Jacks2 import *
+#from sage.all import *
+#from .ObjectWithPartitions import *
+#from .Jacks import *
 
 
 import math # To use the method isnan() to check if variables are NaN or not.
@@ -51,7 +51,7 @@ class Expectations(ObjectWithPartitions):
     # Dictionaries for substitution
     w = var('w')
     W = var('W')
-    N = var('n',latex_name="n")
+    n = var('n',latex_name="n")
     S = var('S',latex_name="\\Sigma")
     Sinv = var('Sinv', latex_name = "\\Sigma")
     Winv = var('Winv',latex_name = "W")
@@ -64,11 +64,17 @@ class Expectations(ObjectWithPartitions):
         # We could add jacks as a instance variable
 
         # Rings we will use
+        self.R0 = PolynomialRing(SR,'S')
+        self.R0._latex_names = ['\\Sigma']
+        
         self.R2 = PolynomialRing(QQ,'f,p,r')
         (f,p,r) = self.R2.gens()
+        
+        self.R3 = PolynomialRing(QQ,'n,r')
 
         (v_L,v_L_inv, L, rr) = self.vectors_L()
         self.v_L = v_L
+        
         self.v_L_inv = v_L_inv
         self.L = L
         self.rr = rr
@@ -125,41 +131,63 @@ class Expectations(ObjectWithPartitions):
 
         P = Partitions(self.k).list()
         (f,p,r) = self.R2.gens()
+        n = var('n')
 
         if not inverse:
             if not('+' in self.Dk):
-                Dk = matrix(self.R2,self.s,self.s,0)
+#                Dk = matrix(self.R2,self.s,self.s,0)
+                Dk = matrix(self.R3,self.s,self.s,0)
 
                 pm = [1]*self.s
+#                for i in range(0,self.s):
+#                    lm = len(P[i])
+#                    for j in range(1,lm+1):
+#                            for t in range(1,P[i][j-1]+1):
+#                                pm[i] *= p +t-1- (j-1)*f
+#                    Dk[i,i] = pm[i]
+                
                 for i in range(0,self.s):
                     lm = len(P[i])
                     for j in range(1,lm+1):
                             for t in range(1,P[i][j-1]+1):
-                                pm[i] *= p +t-1- (j-1)*f
+                                pm[i] *= (n/2) +t-1- (j-1)/2
                     Dk[i,i] = pm[i]
 
                 self.Dk['+'] = Dk
         else:
             if not('-' in self.Dk):
                 ## Compute the diagonal for the expectations of the inverse
-                R2_frac = self.R2.fraction_field()
-                Dk_star = matrix(R2_frac,self.s,self.s,0)
-
-                n = var('n',latex_name="n")
+#                R2_frac = self.R2.fraction_field()
+#                Dk_star = matrix(R2_frac,self.s,self.s,0)
+                
+                R3_frac = self.R3.fraction_field()
+                Dk_star = matrix(R3_frac,self.s,self.s,0)
 
                 qm = [1]*self.s
+#                for i in range(0,self.s):
+#                    lm = len(P[i])
+#                    for j in range(self.k-lm+1,self.k+1):
+#                            for t in range(1,P[i][self.k-j+1 -1]+1):
+#                                qm[i] *= p + (self.k-j+1)*f -t # here I'd like to use another var, e.g, q instead of the same p,
+#                                                          # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
+#                    # Evaluate the expr. in q = p-r*f
+#                    denom = (qm[i].subs({p : (p - r*f)})) # later we'll substitute for f = 1/2 (as f=1/2 is the value of f we're interested in)
+#                    Dk_star[i,i] = 1/denom
+
                 for i in range(0,self.s):
                     lm = len(P[i])
                     for j in range(self.k-lm+1,self.k+1):
                             for t in range(1,P[i][self.k-j+1 -1]+1):
-                                qm[i] *= p + (self.k-j+1)*f -t # here I'd like to use another var, e.g, q instead of the same p,
-                                                          # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
-                    # Evaluate the expr. in q = p-r*f
-                    denom = (qm[i].subs({p : (p - r*f)})) # later we'll substitute for f = 1/2 (as f=1/2 is the value of f we're interested in)
+                                qm[i] *= (n-r)/2 + (self.k-j+1)/2 -t 
+                    denom = qm[i]
                     Dk_star[i,i] = 1/denom
+                
                 self.Dk['-'] = Dk_star
 
     def compute_M(self,inverse = False):
+        
+        (f,p,r) = self.R2.gens()
+        
         self.compute_Dk(inverse)
         if not(inverse):
             if not('+' in self.M):
@@ -167,85 +195,6 @@ class Expectations(ObjectWithPartitions):
         else:
             if not('-' in self.M):
                 self.M['-'] = self.IBk*self.Dk['-']*self.Bk
-
-    def symbolic_M_matrices(self):
-        # Calculates M(p) and M^*(p,r,f) in term of the parameters p,r, and f, which will be subsituted later.
-
-        outmost_verbose = False
-
-        t = 0 # partitions go like mu(s-(s-1)) = m(1) < mu(s-(s-2)) = mu(2) < mu(s-1) < mu(s-0) = [s]
-        # So t can range from 0 to s-1
-        # The program will compute the Jack polynomial corresponding to partition mu[s-t] of the list mu of partitions
-
-        jacks = Jacks(self.k)
-
-        ## Below we get a dictionary with 2 keys: 'p' for coeffs in power-sum basis, and 'm' for the coeffs in monomial basis.
-        coef = jacks.jack_polynomial(t)
-        Bk = matrix(QQ,1,coef['p']) # We use the ones of the power-sum basis.
-
-        t=0
-        t+=1
-        # for t in range(1,s-1):
-        while t <= self.s - 1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
-            coef = jacks.jack_polynomial(t)
-            row =  matrix(QQ,1,coef['p'])
-            Bk = Bk.stack(row)
-            t+=1
-
-        # Avoid sage's syntactic sugar
-        #R2.<f,p,r> = QQ['f,p,r']
-        R2 = PolynomialRing(QQ,'f,p,r')
-        (f,p,r) = R2.gens()
-
-        P = Partitions(self.k).list()
-
-        Dk = matrix(R2,self.s,self.s,0)
-
-        pm = [1]*self.s
-        for i in range(0,self.s):
-            lm = len(P[i])
-            for j in range(1,lm+1):
-                    for t in range(1,P[i][j-1]+1):
-                        pm[i] *= p +t-1- (j-1)*f
-            Dk[i,i] = pm[i]
-
-            if outmost_verbose: print(P[i]," -->  ", pm[i])
-
-        # Compute Mp
-        IBk = Bk.inverse()
-
-        Mp = IBk*Dk*Bk
-
-        ## Compute the diagonal for the expectations of the inverse
-        R2_frac = R2.fraction_field()
-        Dk_star = matrix(R2_frac,self.s,self.s,0)
-
-        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
-
-        n = var('n',latex_name="n")
-
-        qm = [1]*self.s
-        for i in range(0,self.s):
-            lm = len(P[i])
-            for j in range(self.k-lm+1,self.k+1):
-                    for t in range(1,P[i][self.k-j+1 -1]+1):
-                        qm[i] *= p + (self.k-j+1)*f -t # here I'd like to use another var, e.g, q instead of the same p,
-                                                  # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
-            # Evaluate the expr. in q = p-r*f
-            denom = (qm[i].subs({p : (p - r*f)})) # later we'll substitute for f = 1/2 (as f=1/2 is the value of f we're interested in)
-            Dk_star[i,i] = 1/denom
-
-        # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == s
-        M_pnf_star = IBk*Dk_star*Bk
-
-        ## Esto es para cheuqear un error nomas
-        #         show("B_k = "+ latex(Bk))
-        #         show("B_k^{-1} = "+ latex(IBk))
-
-        #         DD = Dk_star.subs({p:n/2})
-        #         pretty_print(html(r'<center>$D_k^*(\frac{s-r}{2}) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
-
-        return (Mp,M_pnf_star)
 
     def prettify_negative_powers_of_matrix_var(self, expr, matrix_var):
         ## Artifact to print E[\Sigma ^{-1}] nicely (if we don't do this Sigma^{-1} is printed as 1/Sigma which isn't pretty for a matrix)
@@ -263,30 +212,48 @@ class Expectations(ObjectWithPartitions):
     def moment(self, t, inverse = False):
 
         self.compute_M(inverse) # Computes M['+'] or M['-'] only if it hasn't already been computed.
+        
+        portrait = self.partition_to_portrait(self.P[t])
 
         if inverse :
             if self.P[t] in self.CatalogueInv :
                 m = self.CatalogueInv[self.P[t]]
             else :
-                variable = (self.v_L_inv[t]/self.k).subs({w:self.W**(-1)}).substitute_function(tr,trace)
+                variable = (self.compute_L(portrait,False)/self.k).subs({w:self.W**(-1)}).substitute_function(tr,trace)
                 variable = self.prettify_negative_powers_of_matrix_var(variable, W)
+                
+                
+                # Agregar un parametro 'inverse' en compute_L para decidir que hacer cuando hay que calcular la inversa.
+#                L = self.s*[NaN]
+#                for j in range(0,self.s):
+#                    portrait = self.partition_to_portrait(self.P[j])
+#                    L[j] = self.compute_L(portrait,True)
 
                 expectation = ((self.M['-'].row(t)*self.v_L_inv)/ self.k).subs(self.Dinv).substitute_function(tr,trace)
                 expectation = self.prettify_negative_powers_of_matrix_var(expectation,S)
-                self.CatalogueInv[self.P[t]] = (variable,expectation)
+                
+                m = { 'var':variable , 'moment':expectation }
+                self.CatalogueInv[self.P[t]] = m
 
-                m = (variable, expectation)
             return m
 
         if self.P[t] in self.Catalogue :
             m = self.Catalogue[self.P[t]]
         else :
-            variable = (self.v_L[t]/self.k).subs({w:W}).substitute_function(tr,trace)
-            expectation = ((self.M['+'].row(t)*self.v_L)/ self.k).subs(self.D).substitute_function(tr,trace)
-            self.Catalogue[self.P[t]] = (variable,expectation)
+            variable = (self.compute_L(portrait,False)/self.k).subs({w:W}).substitute_function(tr,trace)
 
-            # m = (variable, expectation)
+            L = self.s*[NaN]
+            for j in range(0,self.s):
+                portrait = self.partition_to_portrait(self.P[j])
+                L[j] = self.compute_L(portrait,True)
+            
+            expectation = sum([ self.M['+'][t,j]*L[j] for j in range(0,self.s)])/self.k
+
             m = { 'var':variable , 'moment':expectation }
+            
+            self.Catalogue[self.P[t]] = m
+
+            
         return m
 
     def expressions(self,inverse=False):
@@ -342,28 +309,40 @@ class Expectations(ObjectWithPartitions):
 
         return "("+a+")"
 
-    def compute_r(self, i):
+    def compute_r(self, i, right=False):
         # i is a portrait
 
-        w = var('w')
-
-        # When we have b1 we want tr\sigma instead of tr(\sigma^1)
-#         r_i = prod([var('b%d'%(j+1),latex_name = self.trace_decorator(j+1,"\\sigma") )^(i[j]) for j in range(0,self.k) ])
-
-#         A = var('A')
-        r_i = prod([trace( w , j+1)**(i[j]) for j in range(0,self.k) ])
+        if not(right): # in this case we compute r_i for the lefthand-side of the equation
+            w = var('w')
+            
+            r_i = prod([trace( w , j+1)**(i[j]) for j in range(0,self.k) ])
+            
+        else: # in this case, we need the righthand-side of the equation, where we use 2*Sigma
+#            R0 = PolynomialRing(SR,'S')
+            S = self.R0.gen()
+            
+            x = var('S',latex_name='\\Sigma')
+            r_i = prod([trace( 2*x , j+1)**(i[j]) for j in range(0,self.k) ])
+            
         return r_i
 
-    def compute_L(self,i):
-        w = var('w')
+    def compute_L(self,i,right=False):
+        if not(right):
+            w = var('w')
+        
+            r_i = self.compute_r(i,False)
 
-        r_i = self.compute_r(i)
-
-#         L_i = sum([expand( r_i*(j+1)*i[j]*w^(j+1)/var('b%d'%(j+1)) ) for j in range(0,self.k) ])
-
-        L_i = sum([expand( r_i*(j+1)*i[j]*w**(j+1)/trace(w,j+1) ) for j in range(0,self.k) ])
-        # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
-
+            L_i = sum([expand( r_i*(j+1)*i[j]*w**(j+1)/trace(w,j+1) ) for j in range(0,self.k) ])
+            # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+        else:
+#            R0 = PolynomialRing(SR,'S')
+            S = self.R0.gen()    
+            x = var('S',latex_name = '\\Sigma')
+            
+            r_i = self.compute_r(i,True)
+            
+            L_i = sum([expand( r_i*(j+1)*i[j]*(2*S)**(j+1)/trace(2*x,j+1) ) for j in range(0,self.k) ])
+            # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
         return L_i
 
     def compute_numerical_value_r(self,i,S):

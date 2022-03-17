@@ -1,4 +1,4 @@
-# from sage.all import *
+#from sage.all import *
 
 class Jacks:
     def __init__(self,k):
