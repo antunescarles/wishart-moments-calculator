@@ -9,7 +9,7 @@ from bisect import bisect_left ###
 from numpy.linalg import matrix_power
 
 def decorator(self,*args):
-    # We need to ensure that the expression that is passed is either a variable or a negative power of a variable. This won't work otherwise.
+    # We should ensure the expression that is passed is either a variable or a negative power of a variable. This won't work otherwise.
     matrix_var = args[0].variables()[0]
 
     matrix_power = args[1]
@@ -29,7 +29,7 @@ def negative_exp_prettyfier(self,*args):
 
 def ev(self,*args):
     expr = args[0]
-    matrix_var = args[0].variables()[0] # We must ensure the expr has only one variable
+    matrix_var = args[0].variables()[0] # We should ensure the expr has only one variable
     pair = expr.coefficients(matrix_var)[0]
 
     # As the input can be something like (2*A)^(-1) we have to retrieve the negative exponent the var A already has,
@@ -67,9 +67,6 @@ class Expectations(ObjectWithPartitions):
         self.R0 = PolynomialRing(SR,'S')
         self.R0._latex_names = ['\\Sigma']
         
-        self.R2 = PolynomialRing(QQ,'f,p,r')
-        (f,p,r) = self.R2.gens()
-        
         self.R3 = PolynomialRing(QQ,'n,r')
 
         (v_L,v_L_inv, L, rr) = self.vectors_L()
@@ -93,15 +90,8 @@ class Expectations(ObjectWithPartitions):
         ## and store them in a dictionary with only two keys: '+' and '-' that wich values will be M and M* respectively.
         self.M = {}
 
-#         (Mp, M_pnf_star) = self.symbolic_M_matrices()
-#         self.Mp = Mp
-#         self.M_pnf_star = M_pnf_star
-
-        # Dictionaries for substitution in the right side of the equation (the one with Sigma)
-        (f,p,r) = self.R2.gens()
-
-        self.D = {p:n/2 , w:2*S , f:1/2 }
-        self.Dinv = {p:n/2 , w : (2*S)**(-1)  , f: 1/2}
+        # Dictionary for substitution in the right side of the equation (the one with Sigma)
+        self.Dinv = {w : (2*S)**(-1)}
 
         self.Catalogue = {}
         self.CatalogueInv = {}
@@ -130,22 +120,13 @@ class Expectations(ObjectWithPartitions):
     def compute_Dk(self,inverse = False):
 
         P = Partitions(self.k).list()
-        (f,p,r) = self.R2.gens()
-        n = var('n')
+        (n,r) = self.R3.gens()
 
         if not inverse:
             if not('+' in self.Dk):
-#                Dk = matrix(self.R2,self.s,self.s,0)
                 Dk = matrix(self.R3,self.s,self.s,0)
 
                 pm = [1]*self.s
-#                for i in range(0,self.s):
-#                    lm = len(P[i])
-#                    for j in range(1,lm+1):
-#                            for t in range(1,P[i][j-1]+1):
-#                                pm[i] *= p +t-1- (j-1)*f
-#                    Dk[i,i] = pm[i]
-                
                 for i in range(0,self.s):
                     lm = len(P[i])
                     for j in range(1,lm+1):
@@ -157,23 +138,10 @@ class Expectations(ObjectWithPartitions):
         else:
             if not('-' in self.Dk):
                 ## Compute the diagonal for the expectations of the inverse
-#                R2_frac = self.R2.fraction_field()
-#                Dk_star = matrix(R2_frac,self.s,self.s,0)
-                
                 R3_frac = self.R3.fraction_field()
                 Dk_star = matrix(R3_frac,self.s,self.s,0)
 
                 qm = [1]*self.s
-#                for i in range(0,self.s):
-#                    lm = len(P[i])
-#                    for j in range(self.k-lm+1,self.k+1):
-#                            for t in range(1,P[i][self.k-j+1 -1]+1):
-#                                qm[i] *= p + (self.k-j+1)*f -t # here I'd like to use another var, e.g, q instead of the same p,
-#                                                          # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
-#                    # Evaluate the expr. in q = p-r*f
-#                    denom = (qm[i].subs({p : (p - r*f)})) # later we'll substitute for f = 1/2 (as f=1/2 is the value of f we're interested in)
-#                    Dk_star[i,i] = 1/denom
-
                 for i in range(0,self.s):
                     lm = len(P[i])
                     for j in range(self.k-lm+1,self.k+1):
@@ -185,9 +153,7 @@ class Expectations(ObjectWithPartitions):
                 self.Dk['-'] = Dk_star
 
     def compute_M(self,inverse = False):
-        
-        (f,p,r) = self.R2.gens()
-        
+
         self.compute_Dk(inverse)
         if not(inverse):
             if not('+' in self.M):
@@ -205,9 +171,9 @@ class Expectations(ObjectWithPartitions):
 
         # To do: change the name of the variable added.
         # Use Sinvj for Sinv^(-j) instead of S, and it will be probably needed to change the trace_decorator_inv
-        expr2 = sum( [ p[0].factor()*inv(matrix_var,abs(p[1])) for p in pairs] ) # factorize the denominator
+        expr = sum( [ p[0].factor()*inv(matrix_var,abs(p[1])) for p in pairs] ) # factorize the denominator
 
-        return expr2
+        return expr
 
     def moment(self, t, inverse = False):
 
@@ -222,13 +188,6 @@ class Expectations(ObjectWithPartitions):
                 variable = (self.compute_L(portrait,False)/self.k).subs({w:self.W**(-1)}).substitute_function(tr,trace)
                 variable = self.prettify_negative_powers_of_matrix_var(variable, W)
                 
-                
-                # Agregar un parametro 'inverse' en compute_L para decidir que hacer cuando hay que calcular la inversa.
-#                L = self.s*[NaN]
-#                for j in range(0,self.s):
-#                    portrait = self.partition_to_portrait(self.P[j])
-#                    L[j] = self.compute_L(portrait,True)
-
                 expectation = ((self.M['-'].row(t)*self.v_L_inv)/ self.k).subs(self.Dinv).substitute_function(tr,trace)
                 expectation = self.prettify_negative_powers_of_matrix_var(expectation,S)
                 
@@ -262,15 +221,13 @@ class Expectations(ObjectWithPartitions):
 
             var_list = []
             for i in range(0,self.s):
-#                 var_list.append([i,self.prettify_negative_powers_of_matrix_var(v[i].substitute_function(tr,trace), W)])
                   print([i,self.prettify_negative_powers_of_matrix_var(v[i].substitute_function(tr,trace), W)])
         else:
             v = (self.v_L/self.k).subs({w:W})
             var_list = []
             for i in range(0,self.s):
-#                 var_list.append([i,v[i].substitute_function(tr,trace)])
                 print([i,v[i].substitute_function(tr,trace)])
-#         return var_list
+                
     def expression(self, t,inverse=False):
         expr = []
         if not(inverse):
@@ -279,21 +236,21 @@ class Expectations(ObjectWithPartitions):
             expr = (self.v_L_inv[t]/self.k).subs({w:self.W**(-1)})
             expr = self.prettify_negative_powers_of_matrix_var(expr.substitute_function(tr,trace), W)
         return expr
-    def partition_to_portrait(self,t):
-        #  t is a type, or equivalently, a partition
-        t = list(t) # we have to ensure we work with a list and not a object of another data type.
+    def partition_to_portrait(self, lam):
+        #  lam (lam) is a partition
+        lam = list(lam) # we have to ensure we work with a list and not a object of another data type.
 
-        i = [0]*self.k
-        set_t = set(t)
-        for j in set_t:
+        i = [0]*self.k # i will represent the portrait (i) associated to lambda
+        set_lam = set(lam)
+        for j in set_lam:
             #  we want to represent to store st such that st[0]*1 + st[1]*2 + st[2]*3 + ... + st[k-1]*k = k
             # notice that index starts from zero but is the same. That's the reason why we add 1 to i below:
-            i[j-1] = list(t).count(j)
+            i[j-1] = list(lam).count(j)
         return i
 
     def trace_decorator(self, l, varname):
-        # l sera j+1, la potencia del argumento
-        # p sera i[j], la potencia de la traza
+        # l will be j+1, the power of the argument
+        # p will be i[j], the power of the trace
         a = "\\mathrm{tr}\\,"
         if (l == 1):
             a = a + varname
@@ -303,14 +260,14 @@ class Expectations(ObjectWithPartitions):
         return "("+a+")"
 
     def trace_decorator_inv(self, l, varname):
-        # l sera j+1, la potencia del argumento
-        # p sera i[j], la potencia de la traza
+        # l will be j+1, the power of the argument
+        # p will be i[j], the power of the trace
         a = "\\mathrm{tr}\\,"+varname+"^{-%d}"%(l)
 
         return "("+a+")"
 
     def compute_r(self, i, right=False):
-        # i is a portrait
+        # i is a portrait (i1, i2,..., ik)
 
         if not(right): # in this case we compute r_i for the lefthand-side of the equation
             w = var('w')
@@ -318,7 +275,6 @@ class Expectations(ObjectWithPartitions):
             r_i = prod([trace( w , j+1)**(i[j]) for j in range(0,self.k) ])
             
         else: # in this case, we need the righthand-side of the equation, where we use 2*Sigma
-#            R0 = PolynomialRing(SR,'S')
             S = self.R0.gen()
             
             x = var('S',latex_name='\\Sigma')
@@ -333,22 +289,19 @@ class Expectations(ObjectWithPartitions):
             r_i = self.compute_r(i,False)
 
             L_i = sum([expand( r_i*(j+1)*i[j]*w**(j+1)/trace(w,j+1) ) for j in range(0,self.k) ])
-            # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+            # ^  for some reason if we multiply r[i] outside sum([...]) simplification is not done right...
         else:
-#            R0 = PolynomialRing(SR,'S')
             S = self.R0.gen()    
             x = var('S',latex_name = '\\Sigma')
             
             r_i = self.compute_r(i,True)
             
             L_i = sum([expand( r_i*(j+1)*i[j]*(2*S)**(j+1)/trace(2*x,j+1) ) for j in range(0,self.k) ])
-            # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+            # ^  for some reason if we multiply r[i] outside sum([...]) simplification is not done right...
         return L_i
 
     def compute_numerical_value_r(self,i,S):
-        # tr = [ (S**(j+1)).trace() for j in range(0,self.k)]
-        tr = [ np.trace(matrix_power(S,j+1)) for j in range(0,self.k)] # Numpy version
-
+        tr = [ np.trace(matrix_power(S,j+1)) for j in range(0,self.k)] 
 
         r_i = prod([ (tr[j])**(i[j]) for j in range(0,self.k) ])
         return (r_i , tr)
@@ -357,10 +310,8 @@ class Expectations(ObjectWithPartitions):
 
         (r_i,tr) = self.compute_numerical_value_r(i,S)
 
-        # L_i = sum([ r_i*(j+1)*i[j]*S**(j+1)/tr[j] for j in range(0,self.k) ])
-        L_i = sum([ r_i*(j+1)*i[j]*matrix_power(S,j+1)/tr[j] for j in range(0,self.k) ]) # Numpy version
-
-        # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+        L_i = sum([ r_i*(j+1)*i[j]*matrix_power(S,j+1)/tr[j] for j in range(0,self.k) ]) 
+        # ^  for some reason if we multiply r[i] outside sum([...]) simplification is not done right...
 
         return L_i
 
@@ -388,40 +339,33 @@ class Expectations(ObjectWithPartitions):
         for j in range(0,self.s):
             Lnum.append(self.compute_numerical_value_L(self.rr[j],2*A)) # For the right-side that is not symbolic.
 
-            # assert A.is_invertible() , "Error: A is not invertible." # think what happens if A is not over QQ, but over RR.
-
             # For the right-side of the inverse that is not symbolic. We call the same function but with the inverse of A as parameter.
             L_inv_num.append(self.compute_numerical_value_L(self.rr[j],matrix_power(2*A ,-1)))
 
         return (Lnum,L_inv_num)
 
-    def wishart_expectations_numval(self,Sigma,n_param,inverse):
+    def evaluated_wishart_expectations(self,Sigma,n_param,inverse):
 
         A = Sigma
         dim_Sigma = Sigma.shape[0]
-
-        outmost_verbose = False
+        (n,r) = self.R3.gens()
 
         (Lnum,L_inv_num) = self.numerical_L_vectors(A)
 
-        #R2.<f,p,r> = QQ['f,p,r']
-        R2 = PolynomialRing(QQ,'f,p,r')
-        (f,p,r) = R2.gens()
-
-        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
+        # For the righthandside we have carry the computations one by one because we cannot form a vector of matrices.
         Enum = [NaN]*self.s # Numerical (concrete) expectation
 
         # Concrete inverse
-        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
-        E_inv_num = [NaN]*self.s # Numerical (concrete) expectation
-
+        # For the righthandside we have carry the computations one by one because we cannot form a vector of matrices.
+        E_inv_num = [NaN]*self.s # Evaluated expectation
+        
         if not(inverse):
             for i in range(0,self.s):
-                Enum[i] = sum([self.M['+'][i,j].subs({p: n_param/2, f:1/2 })*Lnum[j] for j in range(0,self.s)])
+                Enum[i] = sum([self.M['+'][i,j].subs({n: n_param})*Lnum[j] for j in range(0,self.s)])
         else:
             if (n_param > 2*self.k + (dim_Sigma -1)): # Condition for the inverse to be calculated
                 for i in range(0,self.s):
-                    E_inv_num[i] = sum([self.M['-'][i,j].subs({p: n_param/2, r: dim_Sigma})*L_inv_num[j] for j in range(0,self.s)])
+                    E_inv_num[i] = sum([self.M['-'][i,j].subs({n: n_param, r: dim_Sigma})*L_inv_num[j] for j in range(0,self.s)])
 
         return (Enum, E_inv_num)
 
@@ -446,65 +390,27 @@ class Expectations(ObjectWithPartitions):
 
         # Avoid syntactic sugar!
         # R2.<f,p,r> = QQ['f,p,r']
-        self.R2 = PolynomialRing(QQ,'f,p,r')
-        (f,p,r) = self.R2.gens()
+#        self.R2 = PolynomialRing(QQ,'f,p,r')
+#        (f,p,r) = self.R2.gens()
 
-        (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, n_param,inverse)
+        (Enum, E_inv_num)= self.evaluated_wishart_expectations(Sigma, n_param,inverse)
 
         if inverse == False:
             variable = (self.v_L[t]/self.k).subs({w:W}).substitute_function(tr,trace)
-            # evaluated_expectation = Enum[t].subs({f:1/2})
             evaluated_expectation = Enum[t]
         else:
             variable = (self.v_L_inv[t]/self.k).subs({w:self.W**(-1)}).substitute_function(tr,trace)
             variable = self.prettify_negative_powers_of_matrix_var(variable, W)
 
-            evaluated_expectation = E_inv_num[t].subs({f:1/2})
+            evaluated_expectation = E_inv_num[t]
 
-        # eval_m = (variable, evaluated_expectation)
         eval_m = { 'var': variable, 'moment': evaluated_expectation }
-
-#         if self.P[t] in self.Catalogue :
-#             m = self.Catalogue[self.P[t]]
-#         else :
-#             variable = (self.v_L[t]/self.k).subs({w:W}).substitute_function(tr,trace)
-#             evaluated_expectation = Enum[t+1]
-# #             expectation_value = ((self.M['+'].row(t)*self.v_L)/ self.k).subs(self.D).substitute_function(tr,trace)
-
-#             eval_m = (variable, evaluated_expectation)
+        
         return eval_m
 
     def pretty_print_eval_moment(self, t, n_param, Sigma, inverse = False):
         eval_m = self.evaluate_moment(t,n_param,Sigma,inverse)
         pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m[0]),latex(eval_m[1])) ))
-
-#         (lsideD, new_E_inv_expr_lside, new_E_inv_expr) = self.expectations_expressions(Ik_indx)
-
-
-
-#         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(self.P[Ik_indx-1])) )
-#         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
-#         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(self.v_L[Ik_indx-1].subs(lsideD)/self.k) , latex(Enum[Ik_indx-1].subs({p:n/2})/self.k)) ))
-#         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*self.k+ dim_Sigma-1)))
-#         if n_param > 2*self.k + (dim_Sigma - 1):
-#             pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
-
-#     def evaluate_moment(self, Sigma, n_param, Ik_indx):
-#         A = Sigma
-#         dim_Sigma = Sigma.shape[0]
-
-#         R2.<f,p,r> = QQ['f,p,r']
-
-#         (lsideD, new_E_inv_expr_lside, new_E_inv_expr) = self.expectations_expressions(Ik_indx)
-
-#         (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, n_param)
-
-#         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(self.P[Ik_indx-1])))
-#         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
-#         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(self.v_L[Ik_indx-1].subs(lsideD)/self.k) , latex(Enum[Ik_indx-1].subs({p:n/2})/self.k)) ))
-#         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*self.k+ dim_Sigma-1)))
-#         if n_param > 2*self.k + (dim_Sigma - 1):
-#             pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
 
     def number_of_expectations(self):
         return self.number_of_partitions()
