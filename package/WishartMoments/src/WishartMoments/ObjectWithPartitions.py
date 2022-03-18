@@ -19,4 +19,4 @@ class ObjectWithPartitions:
         return self._k
     @k.setter
     def k(self, value):
-#        raise AttributeError('The attribute k cannot be re-assigned')
+        raise AttributeError('The attribute k cannot be re-assigned')

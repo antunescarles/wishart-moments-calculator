@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: WishartMoments
-Version: 0.0.1
+Version: 0.0.3
 Summary: A package to compute all the invariant Wishart moments.
 Home-page: http://github.com/antunescarles/wishart-moments-calculator
 Author: Carlos Antunes Percincula
@@ -15,7 +15,6 @@ Requires-Python: >=3.6
 Description-Content-Type: text/markdown
 License-File: LICENSE.py
 
-# Firs version of the Wishart Moments package
-
-This is a fist version.
+# Wishart Moments Package
+This is a package for computing the symbolic expressions of all the invariant Wishart moments of a given order. 
 
