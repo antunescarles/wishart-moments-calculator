@@ -4,6 +4,7 @@
 -->
 <html>
 	<head>
+        <link rel="stylesheet" type="text/css" href="https://sagecell.sagemath.org/static/sagecell_embed.css">
 		<title>Wishart moments calculator</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -58,7 +59,7 @@
 
 				<!-- Header -->
 					<header id="header" class="alt">
-						<h1>Wishart moments calculator</h1>
+						<h1>Wishart Moments Calculator</h1>
 						<p>This is a SAGE based moment calculator <br />
 						for Wishart distributed random variables.</p>
 					</header>
@@ -96,7 +97,7 @@ Scandinavian Journal of Statistics, 31(2), 295–318.</a></p>
 						<!-- First Section -->
 							<section id="first" class="main">
 								<header class="major">
-									<h2>Wishart moments calculator</h2>
+									<h2>Wishart Moments C  alculator</h2>
 								</header>
 							<p>This is a SAGE based moment calculator for Wishart distributed random variables.</p>
             
@@ -113,7 +114,14 @@ Scandinavian Journal of Statistics, 31(2), 295–318.</a></p>
             <p>
                 The index $k$ should be entered as a parameter for the computation. The leftmost position of the slider is  $(i) = (k)$, which results in the moments $ \mathbb{E}(W^{\pm k}) $. 
             </p>
+        
+			<div class="sage">
+                <script id = "tofill" type="text/x-sage">    
+                </script>
+            </div>
             
+            <div id = "scell-main"></div>
+                                
             <p>
                 <h3>Capabilities:</h3>
             </p>
@@ -125,13 +133,7 @@ Scandinavian Journal of Statistics, 31(2), 295–318.</a></p>
                 <li>
                     Computations can also be made for a <a href="./numeric.html">specific matrix</a>.
                 </li>
-            </ul>  
-			<div class="sage">
-                <script id = "tofill" type="text/x-sage">    
-                </script>
-            </div>
-            
-            <div id = "scell-main"></div>
+            </ul>     
 							</section>
 
 						<!-- Second Section -->
@@ -196,8 +198,8 @@ Scandinavian Journal of Statistics, 31(2), 295–318.</a></p>
 					<footer id="footer">
 						<p class="copyright">&copy; Argentina, 2022.</p>
 					</footer>
+			       </div>
 
-			</div>
 
 		<!-- Scripts -->
 			<script src="assets/js/jquery.min.js"></script>

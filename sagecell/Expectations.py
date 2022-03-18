@@ -2,7 +2,6 @@
 #from .ObjectWithPartitions import *
 #from .Jacks import *
 
-
 import math # To use the method isnan() to check if variables are NaN or not.
 import numpy as np
 from bisect import bisect_left ###

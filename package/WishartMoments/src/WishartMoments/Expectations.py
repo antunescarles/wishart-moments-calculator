@@ -2,7 +2,6 @@ from sage.all import *
 from .ObjectWithPartitions import *
 from .Jacks import *
 
-
 import math # To use the method isnan() to check if variables are NaN or not.
 import numpy as np
 from bisect import bisect_left ###
@@ -410,11 +409,11 @@ class Expectations(ObjectWithPartitions):
 
     def pretty_print_eval_moment(self, t, n_param, Sigma, inverse = False):
         eval_m = self.evaluate_moment(t,n_param,Sigma,inverse)
-        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m[0]),latex(eval_m[1])) ))
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m['var']),latex(matrix(eval_m['moment']))) ))
 
     def number_of_expectations(self):
         return self.number_of_partitions()
 
     def pretty_print_moment(self,t,inverse=False):
         m = self.moment(t,inverse)
-        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(m[0]),latex(m[1])) ))
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(m['var']),latex(m['moment'])) ))
