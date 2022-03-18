@@ -4,8 +4,6 @@ load('https://raw.githubusercontent.com/antunescarles/wishart-moments-calculator
 
 ############### Interactive interface ###########################
 
-Sigma = identity_matrix(3)
-
 @interact
 def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width = 8,label = "$n$") , positive =checkbox(False,"Compute moment of $W$"), inverse = checkbox(True,label = 'Compute moment of $W^{-1}$') ):
 
@@ -30,7 +28,7 @@ def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width =
             wishartk.pretty_print_eval_moment(Ik_indx-1,N_param,Sigma)
 
         if inverse:
-            if (N_param > 2*wishartk.k + Sigma.nrows() -1):
+            if (N_param > 2*wishartk.k + Sigma.shape[0] -1):
                 wishartk.pretty_print_eval_moment(Ik_indx-1,N_param,Sigma,True)
             else:
-                pretty_print(html( r'$  \text{ The integer } n \text{ must satisfy } n > %d \text{ to compute }  \mathbb{E}(%s) $' % ((2*wishartk.k + Sigma.nrows() -1),latex(wishartk.expression(Ik_indx-1,True)))))
+                pretty_print(html( r'$  \text{ The integer } n \text{ must satisfy } n > %d \text{ to compute }  \mathbb{E}(%s) $' % ((2*wishartk.k + Sigma.shape[0] -1),latex(wishartk.expression(Ik_indx-1,True)))))
