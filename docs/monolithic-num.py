@@ -1,676 +1,600 @@
+import math # To use the method isnan() to check if variables are NaN or not.
 import numpy as np
 from bisect import bisect_left ###
 
-# Raising operator (R_ij^l(lambda))*
-def raising(p,indexes,l):
-    (i,j) = indexes
-    mu = p
-    mu[i]-=l
-    mu[j]+=l
-    mu[::-1].sort()
-    return mu
+def decorator(self,*args):
+    # We need to ensure that the expression that is passed is either a variable or a negative power of a variable. This won't work otherwise.
+    matrix_var = args[0].variables()[0]
 
-# Busqueda del indice de la particion mu en la matriz de particiones.
-def findIndex(mu, M, from_indx):
-    for j in range(from_indx,M.shape[1]):
-        if np.all(mu==M[:,j]) :
-            return j
-
-def jackCoefficients(k):
+    matrix_power = args[1]
     
-    verbose = False
+    # exponent of the matrix variable
+    pair = args[0].coefficients(matrix_var)[0]
     
-    parts = list(Partitions(k).list())
-
-    n = len(parts); #cardinal of the set of partitions
-
-    ##### INITIALIZATION
-    # Initialize the coefficient matrix with zeros in the valid positions and NaN in the invalid ones.
-    C = np.zeros((n-1,n))
-    
-    #complete every partition with zeros and store them as columns in a matrix
-    M = np.zeros((k,n))
-
-    for i in range(0,n):
-        partlen = len(parts[i])
-        M[:partlen,i] = parts[i]
-
-    if (verbose):
-        print("M = \n", M, '\n')
-        print("C = \n", C , '\n')
-
-    ##### ALGORITHM
-
-    #level of indentation (for formatting the output)
-    level = 0
-
-    #Calculation of the coefficients
-
-    if (verbose):
-        print("Calculo de los coeficientes \n")
-
-    #At least for the moment, the partitions in the array are ordered in increasing lexicographic order, but the index of the greatest one is 0 and that of the last one is k-1. We may want to think how to change the index if we'd like.
-    for s in range(0,n):
-        level=1
-        p = M[:,s]
-        if (verbose):
-            print(" "*level,"s = ", s," p = ", p)
-
-
-        for i in range(0,k-1): #We need at least 2 indexes to do what we want.
-            level=2
-            if (verbose):
-                print("  "*level,"i = ", i)
-
-
-            for j in range(i+1,k):
-                level=3
-                if (verbose):
-                    print("  "*level , "j = ", j)
-
-                L= []
-
-                if p[i]-p[j]>= 2 :
-                    level=4
-
-                    L = np.arange(1 , floor((p[i]-p[j])/2)+1)
-
-                    if (verbose):
-                        print("  "*level, "L = ", L)
-
-                    for l in L:
-
-                        level = 5
-
-                        if (verbose):
-                            print("  "*level, "l = ", l)
-                        # raising() will change the argument inside its body. Array are mutable objects, so they are passed by reference in python functions. Be careful!
-                        mu = np.array(p)
-                        mu = raising(mu,(i,j),l)
-
-
-                        #seach for the index of mu in the list of partitions
-                        t = findIndex(mu, M, s)
-
-                        if (verbose):
-                            print("  "*level , "mu = ", mu, "--> t = ", t)
-
-                        # assign the result (depending on the comparison between p[i]-l and p[j]+l)
-                        # we could check wether the coefficient is already non-zero or not (if it is, we have already computed it and we can skip it).
-                        if p[i]-l == p[j]+l:
-                            level=6
-
-                            # Count the number of ocurrences of p[i] - l 
-                            n_pi_minus_l = np.count_nonzero(mu == (p[i]-l) )
-
-                            #print("  "*level,"\n", C)
-
-                            C[(n-1)-t,(n-1)-s] = (p[i]-p[j])*binomial(n_pi_minus_l , 2)
-                            # The indexes are those because the partitions in the matrix M decrease as the index of the columns increase.
-                            # i.e, mu[0] > mu[1] > ... > mu[n-1]
-                            # This is more natural and efficient to compute the coefficients but it's not the way we want them to appear in the matrix to compute the Jack polynomials.
-
-                            if (verbose):
-                                print("  "*level, "caso igual ", "C[%d,%d]"  %(s,t), " = ",  C[(n-1)-t,(n-1)-s])
-                        else:
-                            level =6
-
-                            # Count the number of ocurrences of p[i] - l and p[j] + l in mu
-                            
-                            n_pi_minus_l = np.count_nonzero(mu == (p[i]-l) )
-                            n_pj_plus_l = np.count_nonzero(mu == (p[j]+l) )
-                            C[(n-1)-t,(n-1)-s] = (p[i]-p[j])*n_pi_minus_l*n_pj_plus_l
-
-                            if (verbose):
-                                print("  "*level, "caso distinto ", "C[%d,%d]"  %(s,t), " = ",  C[(n-1)-t,(n-1)-s])
-                else:
-                    if (verbose):
-                        print("  "*level, "L = ", L)
-    return C
-
-def jackDiagonal(k,s):
-    
-    partitions =Partitions(k).list() # This list is sorted in decreasing lexicographic order. So partitions[0] == [k].
-    mu = partitions[s]   
-    
-    L = posets.IntegerPartitionsDominanceOrder(k);
-    
-    p = L.principal_order_ideal(mu) # principal_order_ideal returns a list of partitions/lists. 
-                                               # Since lists in python are sorted by increasing lexicographic order by default,
-                                               # we don't need to do more.
-    
-    R.<t>=ZZ['t']
-    
-    diag = []
-    pp = [] # will become the list of completions of partitions p[i] (zero-padding)
-    l_lam = [ len(p[i]) for i in range(0,len(p)) ]
-    
-    for i in range(0,len(p)):
-        z = k-l_lam[i] # number of zeros we need to append to complete the partition
-        pp.append(p[i]+z*[0])
-
-    # Compute d_mu - d_lambda
-    for i  in range(0,len(pp)-1): # the computatation stops in the len(pp)-1 bc we don't have to compute dmu-dmu. Remember pp[len(pp)-1] == mu <--> p[s]
-        lam= pp[i]
-        mu = pp[-1] # for a list l, l[-1] returns the last element of the list.
-        a = 1
-        if  l_lam[i] < l_lam[-1] :
-            a = -1
-            print("l_mu = %d"% l_mu, " l_lam[%d] = %d"%(i,l_lam[i]))
-            
-        diag.append(a*sum([(t/2)*(lam[j]^2 - mu[j]^2) - (j+1)*(lam[j]- mu [j]) for j in range(0,k) ]))
-    return diag
-
-def subdiagDet(J,k,subdiag,verbose):
-    ## Computation of the determinant (Lapointe, Lascoux, Morse, 1999, Prop. 4)
-    n = J.ncols()
-    assert ( n == J.nrows()  ), "distinto numero de columans y filas en J"
-
-    c = [-1]*n
-
-    c[n-1] = prod([subdiag[i] for i in range(0,len(subdiag))])
-
-    # Recursion
-
-    i=n-2
-
-    while i >= 0:
-        c[i] = QQ['t'](sum([J[i+1,j]*c[j] for j in range(i+1,n)]))
-
-        # Casteo xq J[_,_] es un polinomio en las variables m con coeficientes en QQ[t], no un elemento de QQ[t] directamente.
-        # el -1  multiplicando a J[i+1,i] es porque en la formula hay que dividir por -a[i+1,i]
-
-        c[i] = c[i]// QQ['t']((-1)*J[i+1,i])
-
-        i -=1
-
-    cc = [(factorial(k)*c[i] //c[0]) for i in range(0,n)]
-
-    return cc
-
-def computeJack(k,s,verbose):
-    # Compute the jack polynomial coefficients in monomial and power-sum basis evaluated in t=2 (t is alfa in [Lapointe,Lascoux,Morse,1999])
-    # returns a dictionary with two keys 'm' and 'p', corresponding to monomial and power-sum basis coeffs respectively.
-    # The coeffs are given respect to the increasing order of partitions.
-    # if verbose = True intermediate computations are displayed.
-
-    n = Partitions(k).cardinality()
-
-    assert (s>=0 ) , "s < 0 (here s = %d)" % s
-    assert(s<= n-1) , "s > #partitions-1 (here s = %d and #partitions = %d )" % (s,n)
-
-    C = jackCoefficients(k)
-
-    diag = jackDiagonal(k,s)
-
-    P = Partitions(k).list()
-
-    ###
-
-    ### List of variable names
-
-    ## Find the indices of the partitions that are in the chain.
-
-    # We create a fresh list with the partitions to inverse it. It's crucial tha it is sorted in increasing order to use bisect.
-    Q = Partitions(k).list()
-    Q.reverse()
-
-    # print("P[(n-1)-s] = ",P[s],"== Q[s] = ",Q[(n-1)-s])
-
-    L = posets.IntegerPartitionsDominanceOrder(k).principal_order_ideal(Q[(n-1)-s])
-
-    M = len(L)# Remind that the list of partitions may exclude some of the partition succeded by mu in the dominance order. 
-              # So there may not be exactly s partitions in the list.
-
-    indices = [] # indices of the select partitions in the list of partitions sorted by increasing order, Q.
-    for p in L:
-        ix = bisect_left(Q,p) # We use bisect here because it's probably faster than l.index(x) specially if k is large.
-        assert (ix < n), "element not found by bisect"
-        indices.append(ix)
-    # print("indices: ",indices)
-
-    mvars = ''
-    for i in range(1,M+1):
-        if i!= 1:
-            mvars= mvars+','
-        mvars = mvars+ 'm_'+str(i)
-
-    ## Try to implement this, for giving the variables a latex_name for printing them nicely
-    # mvars = [var('m_'+str(i), latex_name = "m_{"+latex(L[i-1])+"}") for i in range(1,M+1)]
-    # print("** ", mvars)
-
-    R = QQ['t'][mvars]
-    if verbose:
-        print("variables definition string: ", mvars)
-
-    #R.<t> = QQ['t'][]
-    #J = matrix(SR,A)
-
-    m_aux = R.gens()
-    if verbose:
-            print("variables (objects) m_aux: ", m_aux)
-
-    if s != n-1:
-        # WARNING: we need to select the corresponding columns of the matrix according to the partitions in the list 
-        #(which are not necessarily all the partitions from 0 to s).
-
-    #     A = np.array(C[0:n-s-1,0:n-s]) # Este paso es necesario, sino hay un error de contiguidad en memoria...
-    #                                    # Remember that slicing start:end means [start,end).
-
-        # We extract the submatrix corresponding to the partitions selected.
-        # Ver si esto se puede hacer más prolijo indexando en los dos argumentos.
-        AA = np.array(C[:,indices])
-        A = np.array(AA[indices[0:len(indices)-1],:])
-
-        J = matrix(R,A)
-
-        # Fill the upper diagonal with the corresponding elements depending on s.
-
-        for i in range(J.nrows()):
-            if J.nrows() != len(diag):
-                if verbose:
-                    print("#J = %d y #diag = %d" % (J.nrows(),len(diag)),'\n')
-            J[i,i]=diag[i]
-
-        #m_aux = list(var('m_%d'%(i+1)) for i in range(J.ncols()))
-        #m = matrix(SR, m_aux)
-
-        m = matrix(R, m_aux)
-
-        J = m.stack(J)
-
-        if verbose:
-            print("k = %d , s = %d" % (k,s))
-            print('\n', J, '\n')
-
-        ## Computation of the determinant (Lapointe, Lascoux, Morse, 1999, Prop. 4)
-
-        cc = subdiagDet(J,k,diag,verbose)
-
-        jpol = sum([cc[i]*m_aux[i] for i in range(0,len(cc))])
-
-        # Output
-        if verbose:
-            print("Jack polynomial with [k = %d] and [s = %d] corresponding to partition" % (k,s),P[s], "\n")
-            for j in range(0,M):
-                print("(",cc[j].factor(),")","*",L[j])
-
-        # Change to power-sum basis
-
-        m = SymmetricFunctions(QQ['t']).monomial()
-        p = SymmetricFunctions(QQ['t']).power()
-
-        f= sum([cc[i](2)*m[L[i]] for i in range(0,M) ])
-
-        if verbose:
-            print("\nChange to power-sum basis (with t=2)\n")
-            print("--MONOMIAL BASIS--")
-            print(f,"\n")
-            print("--POWER-SUM BASIS--")
-            print(p(f),"\n")
-
-        jcoefs = {} # empty dictionary
-        # coefficients respect to the monomial basis (t=2)
-        jcoefs['m'] = [cc[i](2) for i in range(0,len(cc))]
-
-        # coeffiecients respect to the power-sum basis (t=2)
-        P.reverse()
-        #jcoefs['p'] = [p(f).coefficient(P[i]) for i in range(0,len(cc))]+[0]*s
-        jcoefs['p'] = [p(f).coefficient(P[i]) for i in range(0,n)]
-
-    #     print("jcoefs['m'] : ", jcoefs['m'])
-    #     print("jcoefs['p'] : ", jcoefs['p'])
-
-    if s == n-1:
-        jpol = factorial(k)*m_aux[0]
-
-        # Output
-        if verbose:
-            print("Jack polynomial with [k = %d] and [s = %d] corresponding to partition" % (k,s),P[s], "\n")
-            print("(",jpol.monomial_coefficient(m_aux[0]),")","*",L[0])
-
-        # Change to power-sum basis
-
-        m = SymmetricFunctions(QQ['t']).monomial()
-        p = SymmetricFunctions(QQ['t']).power()
-
-        f= factorial(k)*m[L[-1]]
-
-        if verbose:
-            print("\nChange to power-sum basis (with t=2)\n")
-            print("--MONOMIAL BASIS--")
-            print(f,"\n")
-            print("--POWER-SUM BASIS--")
-            print(p(f),"\n")
-
-        jcoefs = {} # empty dictionary
-        # coefficients respect to the monomial basis (t=2)
-        jcoefs['m'] = [factorial(k)]
-
-        # coeffiecients respect to the power-sum basis (t=2)
-        P.reverse()
-        jcoefs['p'] = [p(f).coefficient(P[i]) for i in range(0,n)]#+[0]*s
-
-    #     print("jcoefs['m'] : ", jcoefs['m'])
-    #     print("jcoefs['p'] : ", jcoefs['p'])
-    
-    return jcoefs
-
-######################################## PORTRAITS.py ####################################
-
-def toPortrait(t,k):
-    #  t is a type, or equivalently, a partition
-    t = list(t) # we have to ensure we work with a list and not a object of another data type.
-    
-    i = [0]*k
-    set_t = set(t)
-    for j in set_t:
-        #  we want to represent to store st such that st[0]*1 + st[1]*2 + st[2]*3 + ... + st[k-1]*k = k
-        # notice that index starts from zero but is the same. That's the reason why we add 1 to i below:
-        i[j-1] = list(t).count(j)
-    return i
-
-def traceDecorator(l,varname):
-    # l sera j+1, la potencia del argumento
-    # p sera i[j], la potencia de la traza
-    a = "\\mathrm{tr}\\,"
-    if (l == 1):
-        a = a+ varname
+    if matrix_power == 1:
+        matrix_part = latex(args[0])
     else:
-        a = a+varname+"^%d"%(l)
+        matrix_part = '%s^{%d}' % (latex(args[0]),  pair[1]*matrix_power)
     
-    return "("+a+")"
+    return '{(\\mathrm{tr} \\, %s)}' % (matrix_part)
 
-def traceDecoratorInv(l,varname):
-    # l sera j+1, la potencia del argumento
-    # p sera i[j], la potencia de la traza
-    a = "\\mathrm{tr}\\,"+varname+"^{-%d}"%(l)
+def negative_exp_prettyfier(self,*args):
+    return '{%s^{-%d}}' % (latex(args[0]), args[1])
+
+def ev(self,*args):
+    expr = args[0]
+    matrix_var = args[0].variables()[0] # We must ensure the expr has only one variable
+    pair = expr.coefficients(matrix_var)[0]
     
-    return "("+a+")"
+    # As the input can be something like (2*A)^(-1) we have to retrieve the negative exponent the var A already has,
+    # and multiply it by the second argument.
+    matrix_var_exponent = pair[1]
+    
+    return (pair[0]^args[1])*tr(matrix_var,matrix_var_exponent*args[1])
 
-def compute_r(i,k):
-    # i is a portrait
+def negative_exp_prettyfier(self,*args):
+    return '{%s^{-%d}}' % (latex(args[0]), args[1])
 
+function('tr', print_latex_func = decorator , nargs = 2 )
+function('trace', print_latex_func = decorator , nargs = 2 , eval_func = ev )
+
+function('inv', print_latex_func = negative_exp_prettyfier, nargs = 2)
+
+class ObjectWithPartitions:
+    def __init__(self,k):
+        self._k = k
+        self._n = Partitions(self.k).cardinality()
+    @property
+    def n(self):
+        return self._n
+    @n.setter
+    def n(self, value):
+        raise AttributeError('The attribute n cannot be re-assigned')
+    
+    def number_of_partitions(self):
+        return self.n
+    
+    @property
+    def k(self):
+        return self._k
+    @k.setter
+    def k(self, value):
+        raise AttributeError('The attribute k cannot be re-assigned')
+
+class Jacks2:
+    def __init__(self,k):
+        self.z = SymmetricFunctions(QQ).zonal()
+        self.p = SymmetricFunctions(QQ).power()
+        self.m = SymmetricFunctions(QQ).monomial()
+        
+        self.k = k
+        self.n = Partitions(k).cardinality()
+        
+        self.P = Partitions(self.k).list()
+#         self.P.reverse()
+        
+    def jack_polynomial(self,s):
+        jackM = self.m(self.z[self.P[s]])
+        
+        
+        coefm1 = jackM.coefficients()[0] # coefficient of m[1,..,1]
+        
+        jackM_Jnorm= (jackM*factorial(self.k))/coefm1 # J normalization of the Jack in the monomial basis
+        
+        jcoefs = {}
+        jcoefs['m'] = jackM_Jnorm.coefficients()
+        jcoefs['p'] = [self.p(jackM_Jnorm).coefficient(self.P[self.n-i-1]) for i in range(0,self.n) ] 
+        # Note: We should fix the method that builds the coef matrix to use the same order for s and for i
+        
+        return jcoefs
+
+class Expectations(ObjectWithPartitions):
+    
+    # Dictionaries for substitution
     w = var('w')
+    W = var('W')
+    N = var('N',latex_name="n")
+    S = var('S',latex_name="\\Sigma")
+    Sinv = var('Sinv', latex_name = "\\Sigma")
+    Winv = var('Winv',latex_name = "W")
     
-    # When we have b1 we want tr\sigma instead of tr(\sigma^1)
-#     r_i = prod([var('b%d'%(j+1),latex_name="\\mathrm{tr}(\\sigma^%d)"%(j+1))^(i[j]) for j in range(0,k) ])
-    r_i = prod([var('b%d'%(j+1),latex_name = traceDecorator(j+1,"\\sigma") )^(i[j]) for j in range(0,k) ])
-    return r_i
+    def __init__(self,k):
+        super().__init__(k)
 
-def compute_L(i,k):
-    w = var('w')
+        self.P = Partitions(k).list()
+        self.P.reverse() #distinguish this from the one with the reverse order somehow
+        # We could add jacks as a instance variable
+
+        # Rings we will use
+        self.R2 = PolynomialRing(QQ,'f,p,r')
+        (f,p,r) = self.R2.gens()
+
+        (v_L,v_L_inv, L, rr) = self.vectors_L()
+        self.v_L = v_L
+        self.v_L_inv = v_L_inv
+        self.L = L
+        self.rr = rr
+
+        # Matrices B, D and M
+
+        ## For any moment, that of W or W^-1 we will need Bk and its inverse.
+        self.Bk = self.compute_Bk()
+        self.IBk = self.Bk.inverse()
+
+        ## We will compute Dk and Dstar_k* only if needed
+        ## and store them in a dictionary with only two keys: '+' and '-' that wich values will be D and Dstar_k respectively.
+        self.Dk = {}
+
+        ## We will compute M = IBk*Dk*Bk and M* = Bk*(Dstar_k)*IBk only if needed
+        ## and store them in a dictionary with only two keys: '+' and '-' that wich values will be M and M* respectively.
+        self.M = {}
+
+#         (Mp, M_pnf_star) = self.symbolic_M_matrices()
+#         self.Mp = Mp
+#         self.M_pnf_star = M_pnf_star
+
+        # Dictionaries for substitution in the right side of the equation (the one with Sigma)
+        (f,p,r) = self.R2.gens()
+
+        self.D = {p:N/2 , w:2*S , f:1/2 }
+        self.Dinv = {p:N/2 , w : (2*S)^(-1)  , f: 1/2}
+
+        self.Catalogue = {}
+        self.CatalogueInv = {}
+
+    def compute_Bk(self):
+        s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
+        # So s can range from 0 to n-1
+        # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list of partitions
+
+        jacks = Jacks2(self.k)
+
+        ## Below we get a dictionary with 2 keys: 'p' for coeffs in power-sum basis, and 'm' for the coeffs in monomial basis.
+        coef = jacks.jack_polynomial(s)
+        Bk = matrix(QQ,1,coef['p']) # We use the ones of the power-sum basis.
+
+        t=0
+        t+=1
+        while t <= self.n - 1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
+            coef = jacks.jack_polynomial(t)
+            row =  matrix(QQ,1,coef['p'])
+            Bk = Bk.stack(row)
+            t+=1
+
+        return Bk
+
+    def compute_Dk(self,inverse = False):
+        
+        P = Partitions(self.k).list()
+        (f,p,r) = self.R2.gens()
+        
+        if not inverse:
+            if not('+' in self.Dk):
+                Dk = matrix(self.R2,self.n,self.n,0)
+
+                pm = [1]*self.n
+                for i in range(0,self.n):
+                    lm = len(P[i])
+                    for j in range(1,lm+1):
+                            for s in range(1,P[i][j-1]+1):
+                                pm[i] *= p +s-1- (j-1)*f
+                    Dk[i,i] = pm[i]
+
+                self.Dk['+'] = Dk
+        else:
+            if not('-' in self.Dk):
+                ## Compute the diagonal for the expectations of the inverse
+                R2_frac = self.R2.fraction_field()
+                Dk_star = matrix(R2_frac,self.n,self.n,0)
+
+                N = var('N',latex_name="n")
+
+                qm = [1]*self.n
+                for i in range(0,self.n):
+                    lm = len(P[i])
+                    for j in range(self.k-lm+1,self.k+1):
+                            for s in range(1,P[i][self.k-j+1 -1]+1):
+                                qm[i] *= p + (self.k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
+                                                          # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
+                    # Evaluate the expr. in q = p-r*f
+                    denom = (qm[i].subs({p : (p - r*f)})) # later we'll substitute for f = 1/2 (as f=1/2 is the value of f we're interested in)
+                    Dk_star[i,i] = 1/denom
+                self.Dk['-'] = Dk_star
+
+    def compute_M(self,inverse = False):
+        self.compute_Dk(inverse)
+        if not(inverse):
+            if not('+' in self.M):
+                self.M['+'] = self.IBk*self.Dk['+']*self.Bk
+        else:
+            if not('-' in self.M):
+                self.M['-'] = self.IBk*self.Dk['-']*self.Bk
+
+    def symbolic_M_matrices(self):
+        # Calculates M(p) and M^*(p,r,f) in term of the parameters p,r, and f, which will be subsituted later.
+
+        outmost_verbose = False
+
+        s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
+        # So s can range from 0 to n-1
+        # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
+
+        jacks = Jacks2(self.k)
+
+        ## Below we get a dictionary with 2 keys: 'p' for coeffs in power-sum basis, and 'm' for the coeffs in monomial basis.
+        coef = jacks.jack_polynomial(s)
+        Bk = matrix(QQ,1,coef['p']) # We use the ones of the power-sum basis.
+
+        t=0
+        t+=1
+        # for t in range(1,n-1):
+        while t <= self.n - 1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
+            coef = jacks.jack_polynomial(t)
+            row =  matrix(QQ,1,coef['p'])
+            Bk = Bk.stack(row)
+            t+=1
+
+        # Avoid sage's syntactic sugar
+        #R2.<f,p,r> = QQ['f,p,r']
+        R2 = PolynomialRing(QQ,'f,p,r')
+        (f,p,r) = R2.gens()
+
+        P = Partitions(self.k).list()
+
+        Dk = matrix(R2,self.n,self.n,0)
+
+        pm = [1]*self.n
+        for i in range(0,self.n):
+            lm = len(P[i])
+            for j in range(1,lm+1):
+                    for s in range(1,P[i][j-1]+1):
+                        pm[i] *= p +s-1- (j-1)*f
+            Dk[i,i] = pm[i]
+
+            if outmost_verbose: print(P[i]," -->  ", pm[i])
+
+        # Compute Mp 
+        IBk = Bk.inverse()
+
+        Mp = IBk*Dk*Bk
+
+        ## Compute the diagonal for the expectations of the inverse
+        R2_frac = R2.fraction_field()
+        Dk_star = matrix(R2_frac,self.n,self.n,0)
+
+        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
+
+        N = var('N',latex_name="n")
+
+        qm = [1]*self.n
+        for i in range(0,self.n):
+            lm = len(P[i])
+            for j in range(self.k-lm+1,self.k+1):
+                    for s in range(1,P[i][self.k-j+1 -1]+1):
+                        qm[i] *= p + (self.k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
+                                                  # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
+            # Evaluate the expr. in q = p-r*f
+            denom = (qm[i].subs({p : (p - r*f)})) # later we'll substitute for f = 1/2 (as f=1/2 is the value of f we're interested in)
+            Dk_star[i,i] = 1/denom
+
+        # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
+        M_pnf_star = IBk*Dk_star*Bk
+
+        ## Esto es para cheuqear un error nomas
+        #         show("B_k = "+ latex(Bk))
+        #         show("B_k^{-1} = "+ latex(IBk))
+
+        #         DD = Dk_star.subs({p:N/2})
+        #         pretty_print(html(r'<center>$D_k^*(\frac{n-r}{2}) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
+
+        return (Mp,M_pnf_star)
+
+    def prettify_negative_powers_of_matrix_var(self, expr, matrix_var):
+        ## Artifact to print E[\Sigma ^{-1}] nicely (if we don't do this Sigma^{-1} is printed as 1/Sigma which isn't pretty for a matrix)
+        # 1) Extract the coefficients of every negative power of Sinv
+        # 2) Form a new expression multiplying the coef of the (-j)-th powe of Sinv for a new variable, something like Sj with latex_name \Sigma^{-j}
+
+        pairs = expr.coefficients(matrix_var) # we get the list of pairs of the form (coefficient of Sinv^power, power)
+
+        # To do: change the name of the variable added.
+        # Use Sinvj for Sinv^(-j) instead of S, and it will be probably needed to change the trace_decorator_inv
+        expr2 = sum( [ p[0].factor()*inv(matrix_var,abs(p[1])) for p in pairs] ) # factorize the denominator
+
+        return expr2
+
+    def moment(self, s, inverse = False):
+
+        self.compute_M(inverse) # Computes M['+'] or M['-'] only if it hasn't already been computed.
+
+        if inverse :
+            if self.P[s] in self.CatalogueInv :
+                m = self.CatalogueInv[self.P[s]]
+            else :
+                variable = (self.v_L_inv[s]/self.k).subs({w:self.W^(-1)}).substitute_function(tr,trace)
+                variable = self.prettify_negative_powers_of_matrix_var(variable, W)
+
+                expectation = ((self.M['-'].row(s)*self.v_L_inv)/ self.k).subs(self.Dinv).substitute_function(tr,trace)
+                expectation = self.prettify_negative_powers_of_matrix_var(expectation,S)
+                self.CatalogueInv[self.P[s]] = (variable,expectation)
+
+                m = (variable, expectation)
+            return m
+
+        if self.P[s] in self.Catalogue :
+            m = self.Catalogue[self.P[s]]
+        else :
+            variable = (self.v_L[s]/self.k).subs({w:W}).substitute_function(tr,trace)
+            expectation = ((self.M['+'].row(s)*self.v_L)/ self.k).subs(self.D).substitute_function(tr,trace)
+            self.Catalogue[self.P[s]] = (variable,expectation)
+
+            m = (variable, expectation)
+        return m
     
-    r_i = compute_r(i,k)
+    def expressions(self,inverse=False):
+        if inverse:
+            v = (self.v_L_inv/self.k).subs({w:self.W^(-1)})
+            
+            var_list = []
+            for i in range(0,self.n):
+#                 var_list.append([i,self.prettify_negative_powers_of_matrix_var(v[i].substitute_function(tr,trace), W)])
+                  print([i,self.prettify_negative_powers_of_matrix_var(v[i].substitute_function(tr,trace), W)])
+        else:
+            v = (self.v_L/self.k).subs({w:W})
+            var_list = []
+            for i in range(0,self.n):
+#                 var_list.append([i,v[i].substitute_function(tr,trace)])
+                print([i,v[i].substitute_function(tr,trace)])
+#         return var_list
+    def expression(self, s,inverse):
+        expr = []
+        if not(inverse):
+            expr = (self.v_L[s]/self.k).subs({w:W}).substitute_function(tr,trace)
+        else:
+            expr = (self.v_L_inv[s]/self.k).subs({w:self.W^(-1)})
+            expr = self.prettify_negative_powers_of_matrix_var(expr.substitute_function(tr,trace), W)
+        return expr
+    def partition_to_portrait(self,t):
+        #  t is a type, or equivalently, a partition
+        t = list(t) # we have to ensure we work with a list and not a object of another data type.
+
+        i = [0]*self.k
+        set_t = set(t)
+        for j in set_t:
+            #  we want to represent to store st such that st[0]*1 + st[1]*2 + st[2]*3 + ... + st[k-1]*k = k
+            # notice that index starts from zero but is the same. That's the reason why we add 1 to i below:
+            i[j-1] = list(t).count(j)
+        return i
+
+    def trace_decorator(self, l, varname):
+        # l sera j+1, la potencia del argumento
+        # p sera i[j], la potencia de la traza
+        a = "\\mathrm{tr}\\,"
+        if (l == 1):
+            a = a + varname
+        else:
+            a = a+varname+"^%d"%(l)
+
+        return "("+a+")"
+
+    def trace_decorator_inv(self, l, varname):
+        # l sera j+1, la potencia del argumento
+        # p sera i[j], la potencia de la traza
+        a = "\\mathrm{tr}\\,"+varname+"^{-%d}"%(l)
+
+        return "("+a+")"
+
+    def compute_r(self, i):
+        # i is a portrait
+
+        w = var('w')
+
+        # When we have b1 we want tr\sigma instead of tr(\sigma^1)
+#         r_i = prod([var('b%d'%(j+1),latex_name = self.trace_decorator(j+1,"\\sigma") )^(i[j]) for j in range(0,self.k) ])
+
+#         A = var('A')
+        r_i = prod([trace( w , j+1)^(i[j]) for j in range(0,self.k) ])
+        return r_i
+
+    def compute_L(self,i):
+        w = var('w')
+
+        r_i = self.compute_r(i)
+
+#         L_i = sum([expand( r_i*(j+1)*i[j]*w^(j+1)/var('b%d'%(j+1)) ) for j in range(0,self.k) ])
+        
+        L_i = sum([expand( r_i*(j+1)*i[j]*w^(j+1)/trace(w,j+1) ) for j in range(0,self.k) ])
+        # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+
+        return L_i
+
+    def compute_numerical_value_r(self,i,S):
+        tr = [ (S^(j+1)).trace() for j in range(0,self.k)]
+        r_i = prod([ (tr[j])^(i[j]) for j in range(0,self.k) ])
+        return (r_i , tr)
+
+    def compute_numerical_value_L(self,i,S):
+
+        (r_i,tr) = self.compute_numerical_value_r(i,S)
+
+        L_i = sum([ r_i*(j+1)*i[j]*S^(j+1)/tr[j] for j in range(0,self.k) ])
+        # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+
+        return L_i
+
+    def vectors_L(self):
+
+        rr = [] # this shouldn't be named 'r' bc it crashes with the name of the parameter r that represents de dimension of Sigma
+        L = []
+        for j in range(0,self.n):
+            rr.append(self.partition_to_portrait(self.P[j]))
+            L.append(self.compute_L(rr[j]))
+
+        v_L = vector(SR,L)
+
+        # The next one is the same than v_L, but for caution we use a fresh variable.
+        # When we have to print them, we'll substitute the variable used in v_L_inv for sigma^-1 in the latex representation.
+        v_L_inv = vector(SR,L)
+        return (v_L , v_L_inv, L, rr)
+
+
+    def numerical_L_vectors(self,Sigma):
+        A = Sigma
+
+        Lnum = [] # for the right side.
+        L_inv_num = []
+        for j in range(0,self.n):
+            Lnum.append(self.compute_numerical_value_L(self.rr[j],2*A)) # For the right-side that is not symbolic.
+
+            assert A.is_invertible() , "Error: A is not invertible." # think what happens if A is not over QQ, but over RR.
+
+            # For the right-side of the inverse that is not symbolic. We call the same function but with the inverse of A as parameter.
+            L_inv_num.append(self.compute_numerical_value_L(self.rr[j],(2*A)^(-1))) 
+
+        return (Lnum,L_inv_num)
+
+    def wishart_expectations_numval(self,Sigma,N_param,inverse):
+
+        A = Sigma
+        dim_Sigma = Sigma.nrows()
+
+        outmost_verbose = False
+
+        (Lnum,L_inv_num) = self.numerical_L_vectors(A)
+
+        #R2.<f,p,r> = QQ['f,p,r']
+        R2 = PolynomialRing(QQ,'f,p,r')
+        (f,p,r) = R2.gens()
+
+        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
+        Enum = [NaN]*self.n # Numerical (concrete) expectation
+        
+        # Concrete inverse
+        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
+        E_inv_num = [NaN]*self.n # Numerical (concrete) expectation
+        
+        if not(inverse):
+            for i in range(0,self.n):
+                Enum[i] = sum([self.M['+'][i,j].subs({p: N_param/2 })*Lnum[j] for j in range(0,self.n)])
+        else:
+            if (N_param > 2*self.k + (dim_Sigma -1)): # Condition for the inverse to be calculated
+                for i in range(0,self.n):
+                    E_inv_num[i] = sum([self.M['-'][i,j].subs({p: N_param/2, r: dim_Sigma})*L_inv_num[j] for j in range(0,self.n)])
+
+        return (Enum, E_inv_num)
+
+    def substitute_with_W_inverse(self,Ik_indx):
+        # Change Sinv^{-j} for Sj because it is best for pretty printing it
+        expr_1 = self.v_L_inv[Ik_indx-1].subs({w : W^(-1)})/self.k # at this point this expression contains Winv as a variable.
+
+        expr_1 = expr_1.substitute_function(tr,trace)
+
+        expr_2 = self.E_inv[Ik_indx-1]/self.k
+
+        random_variable_inv = latex(self.prettify_negative_powers_of_matrix_var(expr_1 , W))
+        expected_value_inv = latex(self.prettify_negative_powers_of_matrix_var(expr_2 , S))
+
+        return (random_variable_inv, expected_value_inv)
     
-    L_i = sum([expand( r_i*(j+1)*i[j]*w^(j+1)/var('b%d'%(j+1)) ) for j in range(0,k) ])
-    # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+    def evaluate_moment(self, s, N_param, Sigma, inverse=False):
+        self.compute_M(inverse) # Computes M['+'] or M['-'] only if it hasn't already been computed.
+        
+        A = Sigma
+        dim_Sigma = Sigma.nrows()
 
-    return L_i
+        R2.<f,p,r> = QQ['f,p,r']
+        
+        (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, N_param,inverse)
+        
+        if inverse == False:
+            variable = (self.v_L[s]/self.k).subs({w:W}).substitute_function(tr,trace)
+            evaluated_expectation = Enum[s].subs({f:1/2})
+        else:
+            variable = (self.v_L_inv[s]/self.k).subs({w:self.W^(-1)}).substitute_function(tr,trace)
+            variable = self.prettify_negative_powers_of_matrix_var(variable, W)
+            
+            evaluated_expectation = E_inv_num[s].subs({f:1/2})
 
-def computeNum_r(i,k,S):
-    tr = [ (S^(j+1)).trace() for j in range(0,k)]
-    r_i = prod([ (tr[j])^(i[j]) for j in range(0,k) ])
-    return (r_i , tr)
+        eval_m = (variable, evaluated_expectation)
+        
+#         if self.P[s] in self.Catalogue :
+#             m = self.Catalogue[self.P[s]]
+#         else :
+#             variable = (self.v_L[s]/self.k).subs({w:W}).substitute_function(tr,trace)
+#             evaluated_expectation = Enum[s+1]
+# #             expectation_value = ((self.M['+'].row(s)*self.v_L)/ self.k).subs(self.D).substitute_function(tr,trace)
 
-def computeNum_L(i,k,S):
-    
-    (r_i,tr) = computeNum_r(i,k,S)
-    
-    L_i = sum([ r_i*(j+1)*i[j]*S^(j+1)/tr[j] for j in range(0,k) ])
-    # ^  por alguna razon si multiplicamos r[i] afuera de sum([...]) no simplifica la bien la expresión...
+#             eval_m = (variable, evaluated_expectation)
+        return eval_m
+        
+    def pretty_print_eval_moment(self, s, N_param, Sigma, inverse = False):
+        eval_m = self.evaluate_moment(s,N_param,Sigma,inverse)
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m[0]),latex(eval_m[1])) ))
 
-    return L_i
+#         (lsideD, new_E_inv_expr_lside, new_E_inv_expr) = self.expectations_expressions(Ik_indx)
 
-######################################### MAIN ######################################### 
+        
+        
+#         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(self.P[Ik_indx-1])) )
+#         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
+#         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(self.v_L[Ik_indx-1].subs(lsideD)/self.k) , latex(Enum[Ik_indx-1].subs({p:N/2})/self.k)) ))
+#         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*self.k+ dim_Sigma-1)))
+#         if N_param > 2*self.k + (dim_Sigma - 1):
+#             pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
 
-r = A.nrows()
-assert (r == A.ncols()), "The matrix given is not squared."
-assert (A.is_symmetric()), "The matrix given is not symmetric."
+#     def evaluate_moment(self, Sigma, N_param, Ik_indx):
+#         A = Sigma
+#         dim_Sigma = Sigma.nrows()
 
-dim_Sigma = A.nrows()
+#         R2.<f,p,r> = QQ['f,p,r']
+
+#         (lsideD, new_E_inv_expr_lside, new_E_inv_expr) = self.expectations_expressions(Ik_indx)
+
+#         (Enum, E_inv_num)= self.wishart_expectations_numval(Sigma, N_param)
+        
+#         pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(self.P[Ik_indx-1])))
+#         pretty_print(html(r'<p style= "margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$2\Sigma = %s $$</p>' %latex(2*A) ))
+#         pretty_print(html( r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em"> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(self.v_L[Ik_indx-1].subs(lsideD)/self.k) , latex(Enum[Ik_indx-1].subs({p:N/2})/self.k)) ))
+#         pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*self.k+ dim_Sigma-1)))
+#         if N_param > 2*self.k + (dim_Sigma - 1):
+#             pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
+
+    def number_of_expectations(self):
+        return self.number_of_partitions()
+
+    def pretty_print_moment(self,s,inverse=False):
+        m = self.moment(s,inverse)
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(m[0]),latex(m[1])) ))
+        
+        
+############### Interactive interface ###########################
+
+Sigma = identity_matrix(3)
 
 @interact
-def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width = 8,label = "$n$")):
+def wrpr(k = input_box(2,width = 8, label="$k$") , N_param = input_box(2,width = 8,label = "$n$") , positive =checkbox(False,"Compute moment of $W$"), inverse = checkbox(True,label = 'Compute moment of $W^{-1}$') ):
 
     outmost_verbose = False
 
     assert (k >= 1) , "Error: k < 0"
 
-    n = Partitions(k).cardinality()
+    wishartk = Expectations(k)
     
-    i_list = [1 .. n]
+    i_list = [1 .. wishartk.number_of_expectations()]
     i_list.reverse()
 
     @interact
-    # def _(k = input_box(3,width = 8, label="$k$"),Ik_indx = input_box(Partitions(3).cardinality(),width = 8, label ="$i$")):
     def _(Ik_indx = slider(vmin = i_list, label ="$(i)$")):
         
-        s = 0 # partitions go like mu(n-(n-1)) = m(1) < mu(n-(n-2)) = mu(2) < mu(n-1) < mu(n-0) = [n]
-        # So s can range from 0 to n-1
-        # The program will compute the Jack polynomial corresponding to partition mu[n-s] of the list mu of partitions
-        
         # Validation of the input
-        assert (1 <= Ik_indx and Ik_indx <= n) , "Error: i < 0 or i > n (#partitions)"
-
-#         print("k = %d , r = Partitions(k).cardinality() = %d , s = %d " % (k,n,s),"\n")
-
-        verbose = False # if verbose == True intermediate computations and checkings are displayed.
-
-        coef = computeJack(k,s,verbose)
-        Bk = matrix(QQ,1,coef['p'])
-
-        t=0
-    #     print("s = %d " % 0,coef['p'])
-        t+=1
-        # for t in range(1,n-1):
-        while t<=n-1: # we use while instead of for bc when k=2 range(1,1) is empty and it never enters the loop
-            coef = computeJack(k,t,verbose)
-            row =  matrix(QQ,1,coef['p'])
-    #         print("s = %d " % t,coef['p'])
-            Bk = Bk.stack(row)
-            t+=1
-
-        if outmost_verbose: 
-            print("\nBk : \n")
-            print(Bk, "\n")
-
-        R2.<f,p,r> = QQ['f,p,r']
-
-        P = Partitions(k).list()
-
-        Dk = matrix(R2,n,n,0)
-
-        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
-        pm = [1]*n
-        for i in range(0,n):
-            lm = len(P[i])
-            for j in range(1,lm+1):
-                    for s in range(1,P[i][j-1]+1):
-                        pm[i] *= p +s-1- (j-1)*f
-            Dk[i,i] = pm[i].subs({f:1/2}) # Evaluated in f = 1/2
-
-            if outmost_verbose: print(P[i]," -->  ", pm[i].subs({f:1/2}).factor())
-
-        if outmost_verbose: 
-            print("\nDk:\n")
-            print(Dk) # Como mostrar las entradas de la matriz factorizadas? Aparentemente no hay una forma de hacerlo.
-
-        # Compute Mp 
-        IBk = Bk.inverse()
-
-        if outmost_verbose: 
-            print("\n")
-            print("IBk : \n")
-            print(IBk,"\n")
-
-        Mp = IBk*Dk*Bk
-
-        if outmost_verbose: 
-            print("Mp : \n")
-            print(Mp)
-
-        ## Calculamos la otra diagonal para el momento de la inversa
-        R2_frac = R2.fraction_field()
-        Dk_star = matrix(R2_frac,n,n,0)
-
-        # To do: Chequear condición....
-
-        if outmost_verbose:  print("Elementos de la diagonal de Dk factorizados\n")
-        R3.<q> =  QQ['q'];
+        assert (1 <= Ik_indx and Ik_indx <= wishartk.number_of_expectations()) , "Error: i < 0 or i > n (#partitions)"
         
-        
-        
-        N = var('N',latex_name="n") #####
-        
-        qm = [1]*n
-        for i in range(0,n):
-            lm = len(P[i])
-            for j in range(k-lm+1,k+1):
-                    for s in range(1,P[i][k-j+1 -1]+1):
-                        qm[i] *= p + (k-j+1)*f -s # here I'd like to use another var, e.g, q instead of the same p,
-                                                  # but as Ill inmediatelly substitute it's not worth the effort thinking a better solution.
-            # Evaluate the expr. in q = p-r*fand then in f = 1/2 (as f=1/2 is the value of f we're interested in)
-            denom = (qm[i].subs({p : (p - r*f)}).subs({f:1/2}))
-            Dk_star[i,i] = 1/denom
-        
-        # When it corresponds, compute M^*(p-rf) r = Partitions(k).cardinality() == n
-        M_pnf_star = IBk*Dk_star*Bk
+        pretty_print(html( r'$(i) = %s$' %  latex(tuple(wishartk.partition_to_portrait(wishartk.P[Ik_indx-1]))) ))
 
-        ## Esto es para cheuqear un error nomas
-#         show("B_k = "+ latex(Bk))
-#         show("B_k^{-1} = "+ latex(IBk))
+        if positive:
+            wishartk.pretty_print_eval_moment(Ik_indx-1,N_param,Sigma)
 
-#         DD = Dk_star.subs({p:N/2})
-#         pretty_print(html(r'<center>$D_k^*(\frac{n-r}{2}) = \begin{pmatrix}%s & %s \\ %s & %s \end{pmatrix}$</center>' % (latex(DD[0,0].factor()) , latex(DD[0,1]), latex(DD[1,0]) , latex(DD[1,1].factor()) ) ))
-
-        ## Computations of the moments
-
-        P.reverse()
-        # print(P,"\n")
-
-        rr = [] # this shouldn't be named 'r' bc it crashes with the name of the parameter r that represents de dimension of Sigma
-        L = []
-        Lnum = [] # for the right side.
-        L_inv_num = []
-        for j in range(0,n):
-            rr.append(toPortrait(P[j],k))
-            L.append(compute_L(rr[j],k))
-            Lnum.append(computeNum_L(rr[j],k,2*A)) # For the right-side that is not symbolic.
-            
-            assert A.is_invertible() , "Error: A is not invertible." # think what happens if A is not over QQ, but over RR.
-            L_inv_num.append(computeNum_L(rr[j],k,(2*A)^(-1))) # For the right-side of the inverse that is not symbolic. We call the same function but with the inverse of A as parameter.
-
-        # for j in range(0,len(r)):
-        #     print(r[j]," ", compute_r(r[j]), " ", compute_L(r[j]))
-
-        v_L = vector(SR,L)
-
-        if outmost_verbose: 
-            print("\n")
-            print("v_L = " , v_L,"\n")
-
-            print("E = Mp*[r_(i)(w)]_(i): \n")
-
-        E = Mp*v_L
-        if outmost_verbose: 
-            for i in range(0,len(E)):
-                print(E[i])
-
-        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
-        Enum = [NaN]*n # Numerical (concrete) expectation
-
-        for i in range(0,n):
-            Enum[i] = sum([Mp[i,j].subs({p: N_param/2 })*Lnum[j] for j in range(0,n)])
-
-        # Concrete inverse
-        #Para el lado derecho hay que hacer las cuentas mas a mano porque no podemos formar un vector de matrices...
-        E_inv_num = [NaN]*n # Numerical (concrete) expectation
-
-        if N_param > 2*k + (dim_Sigma -1): # Condition for the inverse to be calculated
-            for i in range(0,n):
-                E_inv_num[i] = sum([M_pnf_star[i,j].subs({p: N_param/2, r: dim_Sigma})*L_inv_num[j] for j in range(0,n)])
-
-        # Computations on demand
-        W = var('W')
-#         N = var('N',latex_name="n")
-        S = var('S',latex_name="\\Sigma")
-        Sinv = var('Sinv', latex_name = "\\Sigma")
-        Winv = var('Winv',latex_name = "W")
-
-    #     Ik_indx = n-1
-    #     Ik_indx = n # Here we use indices starting at 1
-        if outmost_verbose: print("E[" ,v_L[Ik_indx-1].subs({w : W})/k ,"] = \n")
-
-        D = {p:N/2 , w:2*S}
-#         Dinv = {p:N/2 , w : 2*Sinv^(-1) } # Hay que invertir el 2 tambien
-        Dinv = {p:N/2 , w : (2*Sinv)^(-1) }
-        
-        for i in range(1,n+1):
-    #         D[var('b%d'%i)] = (2^i)*var('b%d'%i)
-            D[var('b%d'%i)] = (2^i)*var('b%d'%i,latex_name = traceDecorator(i,"\\Sigma"))
-
-            Dinv[var('b%d'%i)] = (2^(-i))*var('a%d'%i,latex_name = traceDecoratorInv(i,"{\\Sigma}"))
-
-
-        if outmost_verbose: print(E[Ik_indx-1].subs(D)/k,"\n")
-
-#         print("\n")
-#         print(E[Ik_indx-1].subs(D)/k,"\n")
-
-        ################ 16-8-21 ##################
-        ################ Fix the error in the inverse ##################
-
-        # The next one is the same than v_L, but for caution we use a fresh variable.
-        # When we have to print them, we'll substitute the variable used in v_L_inv for sigma^-1 in the latex representation.
-        v_L_inv = vector(SR,L)
-
-        E_inv = M_pnf_star*v_L_inv
-        ###########################################
-
-#         E_inv_expr = E[Ik_indx-1].subs(Dinv)/k # Old
-        E_inv_expr = E_inv[Ik_indx-1].subs(Dinv)/k
-#         print(E_inv_expr,"\n")
-
-        ## Artifact to print E[\Sigma ^{-1}] nicely
-        # 1) Extract the coefficients of every negatice power of Sinv
-        # 2) Form a new expression multiplying the coef of the (-j)-th powe of Sinv for a new variable, something like Sj with latex_name \Sigma^{-j}
-
-        l = E_inv_expr.coefficients(Sinv)
-#         print("list of coeff of Sinv with its exponents: \n")
-
-#         new_E_inv_expr = sum( [ c[0]*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] )
-        new_E_inv_expr = sum( [ c[0].factor()*var('S%d'%(-c[1]), latex_name = "{\\Sigma^{%d}}"%c[1]) for c in l] ) # factorizar el denominador
-
-
-        print("\n")
-
-        lsideD = {w : W}
-        lsideDinv = {w:Winv^(-1)}
-
-        for i in range(1,n+1):
-
-            lsideD[var('b%d'%i)] = var('b%d'%i,latex_name = traceDecorator(i,"{W}"))
-
-            lsideDinv[var('b%d'%i)] = var('a%d'%i,latex_name = traceDecoratorInv(i,"{W}"))
-
-        ## Formatting of the output
-
-        # We do the same that we did for printing the negative exponents of Sigma but now for the left side of the eq
-
-#         E_inv_expr_lside = v_L[Ik_indx-1].subs(lsideDinv)/k #Old
-        E_inv_expr_lside = v_L_inv[Ik_indx-1].subs(lsideDinv)/k
-        ll = E_inv_expr_lside.coefficients(Winv)
-
-        new_E_inv_expr_lside = sum( [ c[0]*var('W%d'%(-c[1]), latex_name = "{W^{%d}}"%c[1]) for c in ll] )
-        
-        # Show the parameters
-#         show("2\\Sigma = "+ latex(2*A))
-        
-
-        pretty_print(html(r'<div>$(i) = %s $</div>' % LatexExpr(P[Ik_indx-1])) )
-        pretty_print(html(r'<p>$$\Sigma = %s $$</p>' %latex(A) ))
-        pretty_print(html( r'<p> $$\mathbb{E}(%s) \; = \; %s$$</p>' % (latex(v_L[Ik_indx-1].subs(lsideD)/k) , latex(Enum[Ik_indx-1].subs({p:N/2})/k)) ))
-        pretty_print(html( r'$\text{The moments of } W^{-1} \text{ can be computed if}  \, n > 2k + (r-1) = %s .$'% latex(2*k+ dim_Sigma-1)))
-        if N_param > 2*k + (dim_Sigma - 1):
-            pretty_print(html(r'<p>$$\mathbb{E}(%s) \; = \; %s $$</p>'  % (latex(new_E_inv_expr_lside) , latex(E_inv_num[Ik_indx-1]) )))
+        if inverse:
+            if (N_param > 2*wishartk.k + Sigma.nrows() -1):
+                wishartk.pretty_print_eval_moment(Ik_indx-1,N_param,Sigma,True)
+            else:
+                pretty_print(html( r'$  \text{ The integer } n \text{ must satisfy } n > %d \text{ to compute }  \mathbb{E}(%s) $' % ((2*wishartk.k + Sigma.nrows() -1),latex(wishartk.expression(Ik_indx-1,True)))))
