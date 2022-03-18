@@ -410,7 +410,7 @@ class Expectations(ObjectWithPartitions):
 
     def pretty_print_eval_moment(self, t, n_param, Sigma, inverse = False):
         eval_m = self.evaluate_moment(t,n_param,Sigma,inverse)
-        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m['var']),latex(eval_m['moment'])) ))
+        pretty_print(html(r'<p style="margin-top:2em; margin-bottom:2em; margin-left:4.5em">$ \mathbb{E}(%s) = %s $</p>' % (latex(eval_m['var']),latex(matrix(eval_m['moment']))) ))
 
     def number_of_expectations(self):
         return self.number_of_partitions()
