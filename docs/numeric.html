@@ -238,7 +238,7 @@
         <script>
 //            var myCodeMirror = CodeMirror(document.body);
             var editor =  new CodeMirror.fromTextArea(document.getElementById("command"),{lineNumbers: true, theme: 'darcula',mode : "python", viewportMargin : 5, matchBrackets : true, autoCloseBrackets : true});
-            editor.setValue("# Symmetric and squared matrix of rational entries constructed from a list of rows\nimport numpy as np\nSigma = np.array([[1,2],[2,1]])");
+            editor.setValue("# Symmetric and squared matrix. Warning: you have to check these properties yourself.\nimport numpy as np\nSigma = np.array([[4,1],[1,3]])");
             editor.setSize(null,200)
             
             
