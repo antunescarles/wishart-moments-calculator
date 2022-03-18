@@ -1,27 +1,18 @@
-<!DOCTYPE HTML>
-<!--
-	Stellar by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
+<!DOCTYPE html>
 <html>
-	<head>
-		<title>Wishart moments calculator</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
-	</head>
-	
-	 <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
+    <head>
+    </head>
+    
+    <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
     
     <script src="codemirror.js"></script>
     <link rel="stylesheet" href="codemirror.css">
     <script src="javascript.js"></script>
     <link rel = "stylesheet" href="darcula.css">
     <script src="python.js"></script>
-	
-	<!--
+    
+
+<!--
     <script>
         sagecell.makeSagecell({"inputLocation": ".sage", 
                                "autoeval": false,
@@ -65,7 +56,7 @@
 <!--    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>-->
 <!--    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>-->
     
-    <link rel="stylesheet" href="style.css">
+    <link    rel="stylesheet" href="style.css">
     
     <script>
         $(function(){
@@ -113,26 +104,13 @@
             
     </script>
     
-	<body class="is-preload">
-
-		<!-- Wrapper -->
-			<div id="wrapper">
-
-				<!-- Header -->
-					<header id="header">
-						<h1>Wishart moments calculator</h1>
-						<!-- <p>Ipsum dolor sit amet nullam</p>-->
-					</header>
-
-				<!-- Main -->
-					<div id="main">
-
-						<!-- Content -->
-							<section id="content" class="main">
-								<!-- <span class="image main"><img src="images/pic04.jpg" alt="" /></span>-->
-								  <div class="wrapper" id = "wrapper-numeric">
+    <body>
+        <div class="wrapper" id = "wrapper-numeric">
+            <h1>Wishart moments calculator</h1>
             
-            <h2>Capabilities:</h2>
+            <p>
+                <b>Capabilities:</b>
+            </p>
             <ul>
                 <li>
                     The \( \rm\LaTeX \) commands of every expression can be obtained by right-clicking in the formula and then selecting
@@ -177,28 +155,7 @@
         </footer>
 -->
 <!--            <textarea id = "editor"></textarea>-->
-							</section>
-
-					</div>
-
-				<!-- Footer -->
-					<footer id="footer">
-						<p class="copyright">&copy; Argentina, 2022.</p>
-					</footer>
-
-			</div>
-
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/jquery.scrollex.min.js"></script>
-			<script src="assets/js/jquery.scrolly.min.js"></script>
-			<script src="assets/js/browser.min.js"></script>
-			<script src="assets/js/breakpoints.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
-
-	</body>
-		
+    </body>
 <!--
     <script>
         const f = document.querySelector('form');
@@ -239,7 +196,7 @@
 //            var myCodeMirror = CodeMirror(document.body);
             var editor =  new CodeMirror.fromTextArea(document.getElementById("command"),{lineNumbers: true, theme: 'darcula',mode : "python", viewportMargin : 5, matchBrackets : true, autoCloseBrackets : true});
             editor.setValue("# Symmetric and squared matrix of rational entries constructed from a list of rows\nA = matrix(QQ,[[1,2],[2,1]])");
-            editor.setSize(null,200)
+            editor.setSize(null,100)
             
             
         </script>

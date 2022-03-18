@@ -7,7 +7,7 @@ html {
 
 body {
     display: grid;
-    grid-template-columns: 1fr 20fr 1fr;
+    /*grid-template-columns: 1fr 20fr 1fr;*/
     background-color: hsl(60, 22%, 90%);
 }
 
@@ -17,20 +17,20 @@ body {
     padding-right: 1.5rem;
 }
 
-body * {
+/*body * {
     grid-column: 2/3;
     padding-bottom: .2rem
     
-}   
+}*/ 
 
-footer {
+/*footer {
     font-size: 12px;
     margin: 1rem .5rem;
-}   
+}*/   
 
-.footer-text {
+/*.footer-text {
     float: right;
-}
+}*/
 
 code {
     border-radius: 5px; 
