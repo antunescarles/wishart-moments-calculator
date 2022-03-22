@@ -69,8 +69,7 @@ input, select, textarea {
 	/*-moz-appearance: none;
 	-webkit-appearance: none;
 	-ms-appearance: none;
-	appearance: none;
-	border: solid; */
+	appearance: none;*/
 }
 
 /* Basic */
@@ -1826,7 +1825,7 @@ input, select, textarea {
 	}
 
 /* Button */
-/*
+
 	input[type="submit"],
 	input[type="reset"],
 	input[type="button"],
@@ -1989,7 +1988,7 @@ input, select, textarea {
 
 /* Form */
 
-/*	form {
+	form {
 		margin: 0 0 2em 0;
 	}
 
@@ -2064,9 +2063,8 @@ input, select, textarea {
 		display: block;
 		float: left;
 		margin-right: -2em;
-		opacity: 40;
+		opacity: 0;
 		width: 1em;
-		height: 1em;
 		z-index: -1;
 	}
 
